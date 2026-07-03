@@ -21,7 +21,7 @@ export const dashboardLinks = [
   },
   {
     id: 2,
-    name: "Availablity",
+    name: "Availability",
     href: "/dashboard/availability",
     icon: CalendarCheck,
   },
@@ -37,21 +37,33 @@ export function DasboardLinks() {
   const pathname = usePathname();
   return (
     <>
-      {dashboardLinks.map((link) => (
-        <Link
-          key={link.id}
-          href={link.href}
-          className={cn(
-            pathname === link.href
-              ? "text-primary bg-primary/10"
-              : "text-muted-foreground hover:text-foreground",
-            "flex items-center gap-3 rounded-lg px-3 py-2  transition-all  hover:text-primary"
-          )}
-        >
-          <link.icon className="h-4 w-4" />
-          {link.name}
-        </Link>
-      ))}
+      {dashboardLinks.map((link) => {
+        const isActive =
+          link.href === "/dashboard"
+            ? pathname === "/dashboard"
+            : pathname.startsWith(link.href);
+
+        return (
+          <Link
+            key={link.id}
+            href={link.href}
+            className={cn(
+              "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all",
+              isActive
+                ? "bg-primary/10 text-primary shadow-sm"
+                : "text-muted-foreground hover:bg-accent hover:text-foreground",
+            )}
+          >
+            <link.icon
+              className={cn(
+                "size-4 transition-colors",
+                isActive ? "text-primary" : "text-muted-foreground",
+              )}
+            />
+            {link.name}
+          </Link>
+        );
+      })}
     </>
   );
 }

@@ -22,103 +22,115 @@ import { notFound } from "next/navigation";
 import React from "react";
 import { updateAvailabilityAction } from "@/lib/actions/action";
 import { auth } from "@/auth";
+import { CalendarCheck, Clock } from "lucide-react";
 
-// Inferred from the actual findMany return — narrower than
-// `Prisma.AvailabilityGetPayload<{}>` because it matches the runtime shape.
 type AvailabilityRow = Awaited<ReturnType<typeof getData>>[number];
 
 async function getData(userId: string) {
   const data = await prisma.availability.findMany({
-    where: {
-      userId: userId,
-    },
+    where: { userId },
   });
 
-  if (!data) {
-    return notFound();
-  }
-
+  if (!data) return notFound();
   return data;
 }
 
 const AvailabilityPage = async () => {
   const session = await auth();
-
-  if (!session) {
-    return notFound();
-  }
-
+  if (!session) return notFound();
   const data = await getData(session.user?.id as string);
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Availability</CardTitle>
-        <CardDescription>
-          In this section you can manage your availability.
-        </CardDescription>
-      </CardHeader>
-      <form action={updateAvailabilityAction}>
-        <CardContent className="flex flex-col gap-y-4">
-          {data.map((item: AvailabilityRow) => (
-            <div
-              className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 items-center gap-4"
-              key={item.id}
-            >
-              <input type="hidden" name={`id-${item.id}`} value={item.id} />
-              <div className="flex items-center gap-x-3">
-                <Switch
-                  name={`isActive-${item.id}`}
-                  defaultChecked={item.isActive}
-                />
-                <p>{item.day}</p>
+    <div className="w-full max-w-xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
+      <Card className="border-border/60 shadow-lg">
+        <CardHeader className="text-center pb-2">
+          <div className="mx-auto mb-4 size-12 rounded-xl bg-primary/10 flex items-center justify-center ring-1 ring-primary/20">
+            <CalendarCheck className="size-6 text-primary" />
+          </div>
+          <CardTitle className="text-2xl font-bold tracking-tight">
+            Availability
+          </CardTitle>
+          <CardDescription>
+            Set your weekly availability for scheduling
+          </CardDescription>
+        </CardHeader>
+
+        <form action={updateAvailabilityAction}>
+          <CardContent className="flex flex-col gap-y-3 pt-2">
+            {data.map((item: AvailabilityRow) => (
+              <div
+                key={item.id}
+                className="flex flex-col sm:flex-row sm:items-center gap-3 p-3 rounded-lg border border-border/60 bg-muted/20 hover:bg-muted/30 transition-colors"
+              >
+                <input type="hidden" name={`id-${item.id}`} value={item.id} />
+                <div className="flex items-center gap-3 min-w-[120px]">
+                  <Switch
+                    name={`isActive-${item.id}`}
+                    defaultChecked={item.isActive}
+                  />
+                  <span
+                    className={`text-sm font-medium ${
+                      item.isActive
+                        ? "text-foreground"
+                        : "text-muted-foreground"
+                    }`}
+                  >
+                    {item.day}
+                  </span>
+                </div>
+                {item.isActive ? (
+                  <div className="flex items-center gap-2 flex-1">
+                    <Select
+                      name={`fromTime-${item.id}`}
+                      defaultValue={item.fromTime}
+                    >
+                      <SelectTrigger className="w-full">
+                        <Clock className="size-4 text-muted-foreground" />
+                        <SelectValue placeholder="From" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectGroup>
+                          {times.map((time) => (
+                            <SelectItem key={time.id} value={time.time}>
+                              {time.time}
+                            </SelectItem>
+                          ))}
+                        </SelectGroup>
+                      </SelectContent>
+                    </Select>
+                    <span className="text-xs text-muted-foreground shrink-0">
+                      to
+                    </span>
+                    <Select
+                      name={`tillTime-${item.id}`}
+                      defaultValue={item.tillTime}
+                    >
+                      <SelectTrigger className="w-full">
+                        <Clock className="size-4 text-muted-foreground" />
+                        <SelectValue placeholder="To" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectGroup>
+                          {times.map((time) => (
+                            <SelectItem key={time.id} value={time.time}>
+                              {time.time}
+                            </SelectItem>
+                          ))}
+                        </SelectGroup>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                ) : null}
               </div>
-              {item.isActive ? (
-                <>
-                  <Select
-                    name={`fromTime-${item.id}`}
-                    defaultValue={item.fromTime}
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="From Time" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectGroup>
-                        {times.map((time) => (
-                          <SelectItem key={time.id} value={time.time}>
-                            {time.time}
-                          </SelectItem>
-                        ))}
-                      </SelectGroup>
-                    </SelectContent>
-                  </Select>
-                  <Select
-                    name={`tillTime-${item.id}`}
-                    defaultValue={item.tillTime}
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="To Time" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectGroup>
-                        {times.map((time) => (
-                          <SelectItem key={time.id} value={time.time}>
-                            {time.time}
-                          </SelectItem>
-                        ))}
-                      </SelectGroup>
-                    </SelectContent>
-                  </Select>
-                </>
-              ) : null}
-            </div>
-          ))}
-        </CardContent>
-        <CardFooter>
-          <SubmitButton text="Save Changes" />
-        </CardFooter>
-      </form>
-    </Card>
+            ))}
+          </CardContent>
+
+          <CardFooter className="border-t border-border pt-6">
+            <SubmitButton text="Save Changes" className="w-full" />
+          </CardFooter>
+        </form>
+      </Card>
+    </div>
   );
 };
 

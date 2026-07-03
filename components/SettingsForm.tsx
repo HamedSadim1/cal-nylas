@@ -18,14 +18,13 @@ import { parseWithZod } from "@conform-to/zod";
 import { SubmitButton } from "./SubmitButton";
 import { UploadDropzone } from "@/lib/uploadthing";
 import Image from "next/image";
-import { X } from "lucide-react";
+import { Mail, Settings, User, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
 interface iAppProps {
   fullName: string;
   email: string;
-
   profileImage: string;
 }
 
@@ -34,15 +33,10 @@ export function SettingsForm({ fullName, email, profileImage }: iAppProps) {
   const [currentProfileImage, setCurrentProfileImage] = useState(profileImage);
 
   const [form, fields] = useForm({
-    // Sync the result of last submission
     lastResult,
-
-    // Reuse the validation logic on the client
     onValidate({ formData }) {
       return parseWithZod(formData, { schema: aboutSettingsSchema });
     },
-
-    // Validate the form on blur event triggered
     shouldValidate: "onBlur",
     shouldRevalidate: "onInput",
   });
@@ -52,64 +46,89 @@ export function SettingsForm({ fullName, email, profileImage }: iAppProps) {
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Settings</CardTitle>
-        <CardDescription>Manage your account settings.</CardDescription>
+    <Card className="border-border/60 shadow-lg">
+      <CardHeader className="text-center pb-2">
+        <div className="mx-auto mb-4 size-12 rounded-xl bg-primary/10 flex items-center justify-center ring-1 ring-primary/20">
+          <Settings className="size-6 text-primary" />
+        </div>
+        <CardTitle className="text-2xl font-bold tracking-tight">
+          Account settings
+        </CardTitle>
+        <CardDescription>
+          Manage your profile information and preferences
+        </CardDescription>
       </CardHeader>
+
       <form noValidate id={form.id} onSubmit={form.onSubmit} action={action}>
-        <CardContent className="flex flex-col gap-y-4">
-          <div className="flex flex-col gap-y-2">
-            <Label>Full Name</Label>
-            <Input
-              name={fields.fullName.name}
-              key={fields.fullName.key}
-              placeholder="Hamed Sadim"
-              defaultValue={fullName}
-            />
-            <p className="text-red-500 text-sm">{fields.fullName.errors}</p>
-          </div>
-          <div className="flex flex-col gap-y-2">
-            <Label>Email</Label>
-            <Input
-              disabled
-              placeholder="HamedSadim@gmail.com"
-              defaultValue={email}
-            />
+        <CardContent className="flex flex-col gap-y-5 pt-2">
+          {/* Full Name */}
+          <div className="grid gap-y-2">
+            <Label className="text-sm font-medium">Full Name</Label>
+            <div className="relative">
+              <User className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+              <Input
+                name={fields.fullName.name}
+                key={fields.fullName.key}
+                placeholder="Hamed Sadim"
+                defaultValue={fullName}
+                className="pl-9"
+              />
+            </div>
+            {fields.fullName.errors && (
+              <p className="text-destructive text-sm">
+                {fields.fullName.errors}
+              </p>
+            )}
           </div>
 
-          <div className="grid gap-y-5">
+          {/* Email */}
+          <div className="grid gap-y-2">
+            <Label className="text-sm font-medium">Email</Label>
+            <div className="relative">
+              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+              <Input
+                disabled
+                placeholder="hamed@example.com"
+                defaultValue={email}
+                className="pl-9 bg-muted/50"
+              />
+            </div>
+          </div>
+
+          {/* Profile Image */}
+          <div className="grid gap-y-2">
             <input
               type="hidden"
               name={fields.profileImage.name}
               key={fields.profileImage.key}
               value={currentProfileImage}
             />
-            <Label>Profile Image</Label>
+            <Label className="text-sm font-medium">Profile Image</Label>
             {currentProfileImage ? (
-              <div className="relative size-16">
+              <div className="relative size-20">
                 <Image
                   src={currentProfileImage}
                   alt="Profile"
                   width={300}
                   height={300}
-                  className="rounded-lg size-16"
+                  className="rounded-xl size-20 object-cover ring-1 ring-border"
                 />
                 <Button
                   type="button"
                   onClick={handleDeleteImage}
                   variant="destructive"
                   size="icon"
-                  className="absolute -top-3 -right-3"
+                  className="absolute -top-2.5 -right-2.5 size-6 rounded-full shadow-md"
                 >
-                  <X className="size-4" />
+                  <X className="size-3.5" />
                 </Button>
               </div>
             ) : (
               <UploadDropzone
                 endpoint="imageUploader"
                 appearance={{
-                  container: "border-muted",
+                  container:
+                    "border-dashed border-border/60 rounded-xl hover:border-primary/30 transition-colors",
                 }}
                 onClientUploadComplete={(res) => {
                   setCurrentProfileImage(res[0].url);
@@ -120,11 +139,16 @@ export function SettingsForm({ fullName, email, profileImage }: iAppProps) {
                 }}
               />
             )}
-            <p className="text-red-500 text-sm">{fields.profileImage.errors}</p>
+            {fields.profileImage.errors && (
+              <p className="text-destructive text-sm">
+                {fields.profileImage.errors}
+              </p>
+            )}
           </div>
         </CardContent>
-        <CardFooter>
-          <SubmitButton text="Save Changes" />
+
+        <CardFooter className="border-t border-border pt-6">
+          <SubmitButton text="Save Changes" className="w-full" />
         </CardFooter>
       </form>
     </Card>

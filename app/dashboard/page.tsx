@@ -3,7 +3,15 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import React from "react";
 import prisma from "@/lib/db";
-import { ExternalLink, Pen, Settings, Trash, Users2 } from "lucide-react";
+import {
+  ExternalLink,
+  MoreHorizontal,
+  Pen,
+  Plus,
+  Trash2,
+  Users2,
+  Clock,
+} from "lucide-react";
 
 import { EmptyState } from "@/components/EmptyState";
 
@@ -12,7 +20,6 @@ import {
   DropdownMenuContent,
   DropdownMenuGroup,
   DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
@@ -20,16 +27,13 @@ import { MenuActiveSwitcher } from "@/components/EventTypeSwitcher";
 import { CopyLinkMenuItem } from "@/components/CopyLinkMenuItem";
 import { auth } from "@/auth";
 
-// Inferred from the actual query (matches what `select` returns, not the
-// full unselected row shape like `Prisma.EventTypeGetPayload<{}>`).
-type EventTypeRow = NonNullable<Awaited<ReturnType<typeof getData>>>["EventType"][number];
+type EventTypeRow = NonNullable<
+  Awaited<ReturnType<typeof getData>>
+>["EventType"][number];
 
 async function getData(id: string) {
   const data = await prisma.user.findUnique({
-    where: {
-      id: id,
-    },
-
+    where: { id },
     select: {
       EventType: {
         select: {
@@ -39,123 +43,141 @@ async function getData(id: string) {
           url: true,
           duration: true,
         },
-        orderBy: {
-          createdAt: "desc",
-        },
+        orderBy: { createdAt: "desc" },
       },
       userName: true,
     },
   });
 
-  if (!data) {
-    return notFound();
-  }
-
+  if (!data) return notFound();
   return data;
 }
 
-const DashbaordPage = async () => {
+const DashboardPage = async () => {
   const session = await auth();
-  if (!session?.user) {
-    return notFound();
-  }
+  if (!session?.user) return notFound();
   const data = await getData(session.user?.id as string);
-  console.log("🚀 ~ DashbaordPage ~ data:", data);
 
   return (
     <>
-      <div className="flex items-center justify-between px-2">
-        <div className="sm:grid gap-1 hidden">
-          <h1 className="font-heading text-3xl md:text-4xl">Event Types</h1>
-          <p className="text-lg text-muted-foreground">
-            Create and manage your event types.
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-2">
+        <div>
+          <h1 className="text-2xl md:text-3xl font-bold tracking-tight">
+            Event Types
+          </h1>
+          <p className="text-muted-foreground mt-1">
+            Create and manage your event types for scheduling
           </p>
         </div>
-        <Button asChild>
-          <Link href="/dashboard/new">Create New Event</Link>
+        <Button asChild size="lg" className="gap-2 shrink-0">
+          <Link href="/dashboard/new">
+            <Plus className="size-5" />
+            Create New Event
+          </Link>
         </Button>
       </div>
+
+      {/* Content */}
       {data.EventType.length === 0 ? (
         <EmptyState
-          title="You have no Event Types"
-          description="You can create your first event type by clicking the button below."
-          buttonText="Add Event Type"
+          title="No event types yet"
+          description="Create your first event type to start sharing your availability and let people book time with you."
+          buttonText="Create Event Type"
           href="/dashboard/new"
         />
       ) : (
-        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {data.EventType.map((eventType: EventTypeRow) => {
             const { id, active, duration, title, url } = eventType;
+
             return (
-            <div
-              className="  overflow-hidden shadow rounded-lg border relative"
-              key={id}
-            >
-              <div className="absolute top-2 right-2">
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="outline" size="icon">
-                      <Settings className="size-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent className="w-20" align="end">
-                    <DropdownMenuLabel>Event</DropdownMenuLabel>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuGroup>
-                      <DropdownMenuItem asChild>
-                        <Link href={`/${data.userName}/${url}`}>
-                          <ExternalLink className="mr-2 h-4 w-4" />
-                          <span>Preview</span>
-                        </Link>
-                      </DropdownMenuItem>
-                      <CopyLinkMenuItem
-                        meetingUrl={`${process.env.NEXT_PUBLIC_URL}/${data.userName}/${url}`}
-                      />
-                      <DropdownMenuItem asChild>
-                        <Link href={`/dashboard/event/${id}`}>
-                          <Pen className="mr-2 h-4 w-4" />
-                          <span>Edit</span>
-                        </Link>
-                      </DropdownMenuItem>
-                    </DropdownMenuGroup>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem asChild>
-                      <Link href={`/dashboard/event/${id}/delete`}>
-                        <Trash className="mr-2 h-4 w-4" />
-                        <span>Delete</span>
-                      </Link>
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
+              <div
+                key={id}
+                className="group relative rounded-xl border border-border bg-card text-card-foreground shadow-sm hover:shadow-md hover:border-primary/20 transition-all duration-300 overflow-hidden"
+              >
+                {/* Card top area */}
+                <Link href={`/dashboard/event/${id}`} className="block p-5">
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-center gap-4">
+                      <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 ring-1 ring-primary/20 group-hover:bg-primary/15 transition-colors">
+                        <Users2 className="size-5 text-primary" />
+                      </div>
+                      <div className="min-w-0">
+                        <h3 className="font-semibold text-lg leading-tight truncate">
+                          {title}
+                        </h3>
+                        <div className="flex items-center gap-1.5 mt-1 text-sm text-muted-foreground">
+                          <Clock className="size-3.5" />
+                          <span>{duration} min</span>
+                        </div>
+                      </div>
+                    </div>
 
-              <Link href={`/dashboard/event/${id}`}>
-                <div className="p-5">
-                  <div className="flex items-center">
-                    <div className="flex-shrink-0">
-                      <Users2 className="h-6 w-6" aria-hidden="true" />
-                    </div>
-                    <div className="ml-5 w-0 flex-1">
-                      <dl>
-                        <dt className="text-sm font-medium truncate ">
-                          {duration} Minutes Meeting
-                        </dt>
-                        <dd>
-                          <div className="text-lg font-medium ">{title}</div>
-                        </dd>
-                      </dl>
-                    </div>
+                    {/* Dropdown menu */}
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="shrink-0 opacity-0 group-hover:opacity-100 transition-opacity -mr-2"
+                          onClick={(e) => e.preventDefault()}
+                        >
+                          <MoreHorizontal className="size-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-48">
+                        <DropdownMenuGroup>
+                          <DropdownMenuItem asChild>
+                            <Link href={`/${data.userName}/${url}`}>
+                              <ExternalLink className="mr-2 size-4" />
+                              Preview
+                            </Link>
+                          </DropdownMenuItem>
+                          <CopyLinkMenuItem
+                            meetingUrl={`${process.env.NEXT_PUBLIC_URL}/${data.userName}/${url}`}
+                          />
+                          <DropdownMenuItem asChild>
+                            <Link href={`/dashboard/event/${id}`}>
+                              <Pen className="mr-2 size-4" />
+                              Edit
+                            </Link>
+                          </DropdownMenuItem>
+                        </DropdownMenuGroup>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem
+                          asChild
+                          className="text-destructive focus:text-destructive"
+                        >
+                          <Link href={`/dashboard/event/${id}/delete`}>
+                            <Trash2 className="mr-2 size-4" />
+                            Delete
+                          </Link>
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </div>
-                </div>
-              </Link>
-              <div className="bg-muted dark:bg-gray-900 px-5 py-3 flex justify-between items-center">
-                <MenuActiveSwitcher initialChecked={active} eventTypeId={id} />
-
-                <Link href={`/dashboard/event/${id}`}>
-                  <Button className="">Edit Event</Button>
                 </Link>
+
+                {/* Card footer */}
+                <div className="flex items-center justify-between px-5 py-3 border-t border-border bg-muted/30">
+                  <div className="flex items-center gap-2">
+                    <MenuActiveSwitcher
+                      initialChecked={active}
+                      eventTypeId={id}
+                    />
+                    <span className="text-xs text-muted-foreground">
+                      {active ? "Active" : "Inactive"}
+                    </span>
+                  </div>
+                  <Button variant="ghost" size="sm" asChild>
+                    <Link href={`/dashboard/event/${id}`}>
+                      <Pen className="size-3.5 mr-1.5" />
+                      Edit
+                    </Link>
+                  </Button>
+                </div>
               </div>
-            </div>
             );
           })}
         </div>
@@ -164,4 +186,4 @@ const DashbaordPage = async () => {
   );
 };
 
-export default DashbaordPage;
+export default DashboardPage;

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Menu } from "lucide-react";
+import { Menu, LogOut, Settings, ChevronDown } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 
@@ -14,6 +14,7 @@ import {
 import {
   Sheet,
   SheetContent,
+  SheetHeader,
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
@@ -29,15 +30,12 @@ import prisma from "@/lib/db";
 
 async function getData(userId: string) {
   const data = await prisma.user.findUnique({
-    where: {
-      id: userId,
-    },
+    where: { id: userId },
     select: {
       userName: true,
       grantId: true,
     },
   });
-
   return data;
 }
 
@@ -48,84 +46,136 @@ export default async function DashboardLayout({
 }) {
   const session = await auth();
 
-  if (!session?.user) {
-    return redirect("/");
-  }
+  if (!session?.user) return redirect("/");
   const data = await getData(session?.user.id as string);
-
-  if (!data?.userName) {
-    return redirect("/onboarding");
-  }
-  if (!data.grantId) {
-    return redirect("/onboarding/grant-id");
-  }
+  if (!data?.userName) return redirect("/onboarding");
+  if (!data.grantId) return redirect("/onboarding/grant-id");
 
   return (
     <>
-      <div className="grid min-h-screen w-full md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr]">
-        <div className="hidden border-r bg-muted/40 md:block">
-          <div className="flex h-full max-h-screen flex-col gap-2">
-            <div className="flex h-14 items-center border-b px-4 lg:h-[60px] lg:px-6">
-              <Link href="/" className="flex items-center gap-2 font-semibold">
-                <Image src={Logo} alt="Logo" className="size-6" />
-                <p className="text-xl font-bold">
-                  Cal<span className="text-primary">Hamed</span>
+      <div className="grid min-h-screen w-full md:grid-cols-[240px_1fr] lg:grid-cols-[280px_1fr]">
+        {/* Sidebar — glassmorphism */}
+        <aside className="hidden md:flex flex-col border-r border-border/50 bg-background/70 backdrop-blur-xl">
+          {/* Logo */}
+          <div className="flex h-14 items-center gap-3 px-6 border-b border-border/50 lg:h-[60px]">
+            <Link href="/" className="flex items-center gap-2.5 group">
+              <div className="relative">
+                <div className="absolute inset-0 rounded-lg bg-primary/20 blur-md opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                <Image
+                  src={Logo}
+                  alt="Logo"
+                  className="relative size-7 transition-transform duration-300 group-hover:scale-110"
+                />
+              </div>
+              <span className="text-lg font-bold tracking-tight">
+                Cal<span className="text-primary">Hamed</span>
+              </span>
+            </Link>
+          </div>
+
+          {/* Navigation */}
+          <nav className="flex-1 px-3 py-4">
+            <DasboardLinks />
+          </nav>
+
+          {/* User info at bottom */}
+          <div className="border-t border-border/50 px-4 py-3">
+            <div className="flex items-center gap-3">
+              <Image
+                src={session.user.image as string}
+                alt="Profile"
+                width={32}
+                height={32}
+                className="size-8 rounded-full ring-2 ring-border"
+              />
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-medium truncate">
+                  {session.user.name || data.userName}
                 </p>
-              </Link>
-            </div>
-            <div className="flex-1">
-              <nav className="grid items-start px-2 text-sm font-medium lg:px-4">
-                <DasboardLinks />
-              </nav>
+                <p className="text-xs text-muted-foreground truncate">
+                  {session.user.email}
+                </p>
+              </div>
             </div>
           </div>
-        </div>
+        </aside>
+
+        {/* Main content area */}
         <div className="flex flex-col">
-          <header className="flex h-14 items-center gap-4 border-b bg-muted/40 px-4 lg:h-[60px] lg:px-6">
+          {/* Header — glassmorphism */}
+          <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b border-border/50 bg-background/80 backdrop-blur-xl px-4 lg:h-[60px] lg:px-6">
+            {/* Mobile menu trigger */}
             <Sheet>
               <SheetTrigger asChild>
                 <Button
-                  variant="outline"
+                  variant="ghost"
                   size="icon"
                   className="shrink-0 md:hidden"
                 >
                   <Menu className="h-5 w-5" />
-                  <span className="sr-only">Toggle navigation menu</span>
+                  <span className="sr-only">Open menu</span>
                 </Button>
               </SheetTrigger>
-              <SheetContent side="left" className="flex flex-col">
-                <SheetTitle>Dashboard</SheetTitle>
-                <nav className="grid gap-2 mt-10">
+              <SheetContent side="left" className="w-[280px] p-0">
+                <SheetHeader className="p-6 pb-2">
+                  <SheetTitle className="flex items-center gap-2.5">
+                    <Image src={Logo} alt="Logo" className="size-8" />
+                    <span className="text-xl font-bold">
+                      Cal<span className="text-primary">Hamed</span>
+                    </span>
+                  </SheetTitle>
+                </SheetHeader>
+                <nav className="px-3 py-4">
                   <DasboardLinks />
                 </nav>
+                <div className="absolute bottom-0 left-0 right-0 border-t border-border/50 px-6 py-4">
+                  <form
+                    action={async () => {
+                      "use server";
+                      await signOut();
+                    }}
+                  >
+                    <button className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors w-full">
+                      <LogOut className="size-4" />
+                      Log out
+                    </button>
+                  </form>
+                </div>
               </SheetContent>
             </Sheet>
 
-            <div className="ml-auto flex items-center gap-x-4">
+            {/* Right side of header */}
+            <div className="ml-auto flex items-center gap-3">
               <ThemeToggle />
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="secondary"
-                    size="icon"
-                    className="rounded-full"
-                  >
+                  <button className="flex items-center gap-2.5 hover:bg-accent rounded-lg px-2 py-1.5 transition-colors">
                     <Image
                       src={session.user.image as string}
                       alt="Profile"
-                      width={20}
-                      height={20}
-                      className="w-full h-full rounded-full"
+                      width={28}
+                      height={28}
+                      className="size-7 rounded-full ring-1 ring-border"
                     />
-                    <span className="sr-only">Toggle user menu</span>
-                  </Button>
+                    <span className="hidden sm:block text-sm font-medium max-w-[100px] truncate">
+                      {session.user.name || data.userName}
+                    </span>
+                    <ChevronDown className="size-3.5 text-muted-foreground hidden sm:block" />
+                  </button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
+                <DropdownMenuContent align="end" className="w-48">
                   <DropdownMenuLabel>My Account</DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem asChild>
-                    <Link href="/dashboard/settings">Settings</Link>
+                    <Link
+                      href="/dashboard/settings"
+                      className="flex items-center gap-2"
+                    >
+                      <Settings className="size-4" />
+                      Settings
+                    </Link>
                   </DropdownMenuItem>
+                  <DropdownMenuSeparator />
                   <DropdownMenuItem asChild>
                     <form
                       className="w-full"
@@ -134,13 +184,18 @@ export default async function DashboardLayout({
                         await signOut();
                       }}
                     >
-                      <button className="w-full text-left">Log out</button>
+                      <button className="flex items-center gap-2 w-full text-left">
+                        <LogOut className="size-4" />
+                        Log out
+                      </button>
                     </form>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
           </header>
+
+          {/* Page content */}
           <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
             {children}
           </main>
