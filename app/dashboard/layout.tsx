@@ -49,7 +49,7 @@ export default async function DashboardLayout({
   if (!session?.user) return redirect("/");
   const data = await getData(session?.user.id as string);
   if (!data?.userName) return redirect("/onboarding");
-  if (!data.grantId) return redirect("/onboarding/grant-id");
+  if (!data.grantId) return redirect("/onboarding/grand-id");
 
   return (
     <>
