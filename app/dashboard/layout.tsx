@@ -46,8 +46,8 @@ export default async function DashboardLayout({
 }) {
   const session = await auth();
 
-  if (!session?.user) return redirect("/");
-  const data = await getData(session?.user.id as string);
+  if (!session?.user?.id) return redirect("/");
+  const data = await getData(session.user.id);
   if (!data?.userName) return redirect("/onboarding");
   if (!data.grantId) return redirect("/onboarding/grand-id");
 
@@ -81,13 +81,21 @@ export default async function DashboardLayout({
           {/* User info at bottom */}
           <div className="border-t border-border/50 px-4 py-3">
             <div className="flex items-center gap-3">
-              <Image
-                src={session.user.image as string}
-                alt="Profile"
-                width={32}
-                height={32}
-                className="size-8 rounded-full ring-2 ring-border"
-              />
+              {session.user.image ? (
+                <Image
+                  src={session.user.image}
+                  alt="Profile"
+                  width={32}
+                  height={32}
+                  className="size-8 rounded-full ring-2 ring-border"
+                />
+              ) : (
+                <div className="size-8 rounded-full bg-primary/10 ring-2 ring-border flex items-center justify-center">
+                  <span className="text-xs font-medium text-primary">
+                    {(session.user.name || data.userName || "?").charAt(0)}
+                  </span>
+                </div>
+              )}
               <div className="min-w-0 flex-1">
                 <p className="text-sm font-medium truncate">
                   {session.user.name || data.userName}
@@ -150,13 +158,21 @@ export default async function DashboardLayout({
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <button className="flex items-center gap-2.5 hover:bg-accent rounded-lg px-2 py-1.5 transition-colors">
+                  {session.user.image ? (
                     <Image
-                      src={session.user.image as string}
+                      src={session.user.image}
                       alt="Profile"
                       width={28}
                       height={28}
                       className="size-7 rounded-full ring-1 ring-border"
                     />
+                  ) : (
+                    <div className="size-7 rounded-full bg-primary/10 ring-1 ring-border flex items-center justify-center">
+                      <span className="text-[10px] font-medium text-primary">
+                        {(session.user.name || data.userName || "?").charAt(0)}
+                      </span>
+                    </div>
+                  )}
                     <span className="hidden sm:block text-sm font-medium max-w-25 truncate">
                       {session.user.name || data.userName}
                     </span>

@@ -14,7 +14,7 @@ export async function GET(req: NextRequest) {
       status: 401,
     });
   }
-  const url = new URL(req.url as string);
+  const url = req.nextUrl;
   console.log("🚀 ~ GET ~ url:", url);
   const code = url.searchParams.get("code");
   console.log("🚀 ~ GET ~ code:", code);
@@ -24,9 +24,13 @@ export async function GET(req: NextRequest) {
       status: 400,
     });
   }
+  if (!nylasConfig.clientId) {
+    return Response.json("NYLAS_CLIENT_ID is not configured", { status: 500 });
+  }
+
   const codeExchangePayload = {
     clientSecret: nylasConfig.apiKey,
-    clientId: nylasConfig.clientId as string,
+    clientId: nylasConfig.clientId,
     redirectUri: nylasConfig.callbackUri,
     code,
   };
@@ -36,9 +40,13 @@ export async function GET(req: NextRequest) {
     console.log("🚀 ~ GET ~ response:", response);
     const { grantId, email } = response;
 
+    if (!session?.user?.id) {
+      return Response.json("No user ID in session", { status: 401 });
+    }
+
     await prisma.user.update({
       where: {
-        id: session.user?.id as string,
+        id: session.user.id,
       },
       data: {
         grantId: grantId,

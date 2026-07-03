@@ -20,14 +20,15 @@ async function getData(id: string) {
 
 const SettingsPage = async () => {
   const session = await auth();
-  const data = await getData(session?.user?.id as string);
+  if (!session?.user?.id) return notFound();
+  const data = await getData(session.user.id);
 
   return (
     <div className="w-full max-w-xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
       <SettingsForm
         email={data.email}
-        fullName={data.userName as string}
-        profileImage={data.image as string}
+        fullName={data.userName ?? ""}
+        profileImage={data.image ?? ""}
       />
     </div>
   );

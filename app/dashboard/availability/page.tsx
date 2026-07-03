@@ -37,8 +37,8 @@ async function getData(userId: string) {
 
 const AvailabilityPage = async () => {
   const session = await auth();
-  if (!session) return notFound();
-  const data = await getData(session.user?.id as string);
+  if (!session?.user?.id) return notFound();
+  const data = await getData(session.user.id);
 
   return (
     <div className="w-full max-w-xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">

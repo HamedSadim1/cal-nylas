@@ -55,8 +55,8 @@ async function getData(id: string) {
 
 const DashboardPage = async () => {
   const session = await auth();
-  if (!session?.user) return notFound();
-  const data = await getData(session.user?.id as string);
+  if (!session?.user?.id) return notFound();
+  const data = await getData(session.user.id);
 
   return (
     <>

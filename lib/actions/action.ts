@@ -8,6 +8,7 @@ import {
   EventTypeServerSchema,
   onboardingSchema,
 } from "../validations";
+import { getFormString } from "../utils";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { nylas } from "../nylas";
@@ -25,7 +26,7 @@ export async function onboardingAction(prevState: unknown, formData: FormData) {
   // Authenticate the user and get their session
   const session = await auth();
   // Throw an error if the user is not authenticated
-  if (!session?.user) {
+  if (!session?.user?.id) {
     throw new Error("User not authenticated");
   }
 
@@ -35,7 +36,7 @@ export async function onboardingAction(prevState: unknown, formData: FormData) {
       async isUsernameUnique() {
         const exisitngSubDirectory = await prisma.user.findUnique({
           where: {
-            userName: formData.get("username") as string,
+            userName: getFormString(formData, "username"),
           },
         });
         return !exisitngSubDirectory;
@@ -52,7 +53,7 @@ export async function onboardingAction(prevState: unknown, formData: FormData) {
   // If the submission is successful, update the user's information in the database and redirect the user to the home page
   const OnboardingData = await prisma.user.update({
     where: {
-      id: session.user?.id,
+      id: session.user.id,
     },
     data: {
       userName: submission.value.username,
@@ -108,7 +109,7 @@ export async function onboardingAction(prevState: unknown, formData: FormData) {
 export async function SettingsAction(prevState: unknown, formData: FormData) {
   const session = await auth();
 
-  if (!session?.user) {
+  if (!session?.user?.id) {
     throw new Error("User not authenticated");
   }
 
@@ -122,7 +123,7 @@ export async function SettingsAction(prevState: unknown, formData: FormData) {
 
   const user = await prisma.user.update({
     where: {
-      id: session.user?.id as string,
+      id: session.user.id,
     },
     data: {
       userName: submission.value.fullName,
@@ -166,8 +167,8 @@ export async function updateAvailabilityAction(formData: FormData) {
       return {
         id,
         isActive: rawData[`isActive-${id}`] === "on",
-        fromTime: rawData[`fromTime-${id}`] as string,
-        tillTime: rawData[`tillTime-${id}`] as string,
+        fromTime: String(rawData[`fromTime-${id}`]),
+        tillTime: String(rawData[`tillTime-${id}`]),
       };
     });
 
@@ -218,15 +219,17 @@ export async function updateEventTypeStatusAction(
 ) {
   try {
     const session = await auth();
-    if (!session?.user) {
+    if (!session?.user?.id) {
       throw new Error("User not authenticated");
     }
+
+    const userId = session.user.id;
 
     // Update the status of the event type in the database based on the provided event type ID and status
     const data = await prisma.eventType.update({
       where: {
         id: eventTypeId,
-        userId: session?.user?.id as string,
+        userId: userId,
       },
       data: {
         active: isChecked,
@@ -254,7 +257,7 @@ export async function createMeetingAction(formData: FormData) {
 
   const getUserData = await prisma.user.findUnique({
     where: {
-      userName: formData.get("userName") as string,
+      userName: getFormString(formData, "userName"),
     },
     select: {
       grantEmail: true,
@@ -266,9 +269,13 @@ export async function createMeetingAction(formData: FormData) {
     throw new Error("User not found");
   }
 
+  if (!getUserData.grantId || !getUserData.grantEmail) {
+    throw new Error("User has not connected their calendar");
+  }
+
   const eventTypeData = await prisma.eventType.findUnique({
     where: {
-      id: formData.get("eventTypeId") as string,
+      id: getFormString(formData, "eventTypeId"),
     },
     select: {
       title: true,
@@ -276,9 +283,9 @@ export async function createMeetingAction(formData: FormData) {
     },
   });
 
-  const formTime = formData.get("fromTime") as string;
+  const formTime = getFormString(formData, "fromTime");
   const meetingLength = Number(formData.get("meetingLength"));
-  const eventDate = formData.get("eventDate") as string;
+  const eventDate = getFormString(formData, "eventDate");
 
   const startDateTime = new Date(`${eventDate}T${formTime}:00`);
 
@@ -286,7 +293,7 @@ export async function createMeetingAction(formData: FormData) {
   const endDateTime = new Date(startDateTime.getTime() + meetingLength * 60000);
 
   await nylas.events.create({
-    identifier: getUserData?.grantId as string,
+    identifier: getUserData.grantId,
     requestBody: {
       title: eventTypeData?.title,
       description: eventTypeData?.description,
@@ -300,14 +307,14 @@ export async function createMeetingAction(formData: FormData) {
       },
       participants: [
         {
-          name: formData.get("name") as string,
-          email: formData.get("email") as string,
+          name: getFormString(formData, "name"),
+          email: getFormString(formData, "email"),
           status: "yes",
         },
       ],
     },
     queryParams: {
-      calendarId: getUserData?.grantEmail as string,
+      calendarId: getUserData.grantEmail,
       notifyParticipants: true,
     },
   });
@@ -321,17 +328,19 @@ export async function CreateEventTypeAction(
 ) {
   const session = await auth();
 
-  if (!session?.user) {
+  if (!session?.user?.id) {
     throw new Error("User not authenticated");
   }
+
+  const userId = session.user.id;
 
   const submission = await parseWithZod(formData, {
     schema: EventTypeServerSchema({
       async isUrlUnique() {
         const data = await prisma.eventType.findFirst({
           where: {
-            userId: session.user?.id,
-            url: formData.get("url") as string,
+            userId: userId,
+            url: getFormString(formData, "url"),
           },
         });
         return !data;
@@ -350,7 +359,7 @@ export async function CreateEventTypeAction(
       duration: submission.value.duration,
       url: submission.value.url,
       description: submission.value.description,
-      userId: session.user?.id as string,
+      userId: userId,
       videoCallSoftware: submission.value.videoCallSoftware,
     },
   });

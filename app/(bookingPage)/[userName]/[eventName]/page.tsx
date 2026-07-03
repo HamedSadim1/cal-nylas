@@ -100,13 +100,21 @@ const BookingPage = async ({ params, searchParams }: BookingPageProps) => {
         <Card className="max-w-150">
           <CardContent className="p-5 grid md:grid-cols-[1fr,auto,1fr] gap-4">
             <div>
-              <Image
-                src={eventType.user.image as string}
-                alt={`${eventType.user.name}'s profile picture`}
-                className="size-9 rounded-full"
-                width={30}
-                height={30}
-              />
+              {eventType.user.image ? (
+                <Image
+                  src={eventType.user.image}
+                  alt={`${eventType.user.name}'s profile picture`}
+                  className="size-9 rounded-full"
+                  width={30}
+                  height={30}
+                />
+              ) : (
+                <div className="size-9 rounded-full bg-primary/10 flex items-center justify-center">
+                  <span className="text-xs font-medium text-primary">
+                    {(eventType.user.name || "?").charAt(0)}
+                  </span>
+                </div>
+              )}
               <p className="text-sm font-medium text-muted-foreground mt-1">
                 {eventType.user.name}
               </p>
@@ -172,13 +180,21 @@ const BookingPage = async ({ params, searchParams }: BookingPageProps) => {
         <Card className="w-full max-w-250 mx-auto">
           <CardContent className="p-5 md:grid md:grid-cols-[1fr,auto,1fr,auto,1fr] md:gap-4">
             <div>
-              <Image
-                src={eventType.user.image as string}
-                alt={`${eventType.user.name}'s profile picture`}
-                className="size-9 rounded-full"
-                width={30}
-                height={30}
-              />
+              {eventType.user.image ? (
+                <Image
+                  src={eventType.user.image}
+                  alt={`${eventType.user.name}'s profile picture`}
+                  className="size-9 rounded-full"
+                  width={30}
+                  height={30}
+                />
+              ) : (
+                <div className="size-9 rounded-full bg-primary/10 flex items-center justify-center">
+                  <span className="text-xs font-medium text-primary">
+                    {(eventType.user.name || "?").charAt(0)}
+                  </span>
+                </div>
+              )}
               <p className="text-sm font-medium text-muted-foreground mt-1">
                 {eventType.user.name}
               </p>

@@ -52,16 +52,20 @@ async function getAvailability(selectedDate: Date, userName: string) {
       },
     },
   });
+  if (!data?.User?.grantId || !data?.User?.grantEmail) {
+    throw new Error("User has not connected their calendar");
+  }
+
   // Get free/busy data from Nylas for the selected day and user
   const nylasCalendarData = await nylas.calendars.getFreeBusy({
-    identifier: data?.User.grantId as string,
+    identifier: data.User.grantId,
     requestBody: {
       // Convert the start and end of the day to Unix timestamps
       startTime: Math.floor(startOfDay.getTime() / 1000),
       // Convert the end of the day to a Unix timestamp
       endTime: Math.floor(endOfDay.getTime() / 1000),
       // Specify the user's email for the free/busy data
-      emails: [data?.User.grantEmail as string],
+      emails: [data.User.grantEmail],
     },
   });
 
