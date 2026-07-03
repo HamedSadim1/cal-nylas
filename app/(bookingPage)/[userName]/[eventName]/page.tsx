@@ -97,7 +97,7 @@ const BookingPage = async ({ params, searchParams }: BookingPageProps) => {
   return (
     <div className="min-h-screen w-screen flex items-center justify-center">
       {showForm ? (
-        <Card className="max-w-[600px]">
+        <Card className="max-w-150">
           <CardContent className="p-5 grid md:grid-cols-[1fr,auto,1fr] gap-4">
             <div>
               <Image
@@ -138,7 +138,7 @@ const BookingPage = async ({ params, searchParams }: BookingPageProps) => {
             </div>
             <Separator
               orientation="vertical"
-              className="hidden md:block h-full w-[1px]"
+              className="hidden md:block h-full w-px"
             />
 
             <form
@@ -169,7 +169,7 @@ const BookingPage = async ({ params, searchParams }: BookingPageProps) => {
           </CardContent>
         </Card>
       ) : (
-        <Card className="w-full max-w-[1000px] mx-auto">
+        <Card className="w-full max-w-250 mx-auto">
           <CardContent className="p-5 md:grid md:grid-cols-[1fr,auto,1fr,auto,1fr] md:gap-4">
             <div>
               <Image
@@ -210,7 +210,7 @@ const BookingPage = async ({ params, searchParams }: BookingPageProps) => {
 
             <Separator
               orientation="vertical"
-              className="hidden md:block h-full w-[1px]"
+              className="hidden md:block h-full w-px"
             />
 
             <div className="my-4 md:my-0">
@@ -219,9 +219,8 @@ const BookingPage = async ({ params, searchParams }: BookingPageProps) => {
 
             <Separator
               orientation="vertical"
-              className="hidden md:block h-full w-[1px]"
+              className="hidden md:block h-full w-px"
             />
-
             <TimeSlots
               selectedDate={selectedDate}
               userName={userName}

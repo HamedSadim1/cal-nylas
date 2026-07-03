@@ -24,7 +24,7 @@ export function AuthModal() {
           </Button>
         </span>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[400px] p-0 gap-0 overflow-hidden">
+      <DialogContent className="sm:max-w-100 p-0 gap-0 overflow-hidden">
         {/* Branded Header */}
         <div className="relative px-6 pt-8 pb-6 text-center">
           <div className="absolute inset-0 bg-gradient-to-b from-primary/5 to-transparent" />

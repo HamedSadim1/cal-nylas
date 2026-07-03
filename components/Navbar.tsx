@@ -147,7 +147,7 @@ export function Navbar() {
                   <span className="sr-only">Toggle menu</span>
                 </Button>
               </SheetTrigger>
-              <SheetContent side="right" className="w-[280px]">
+              <SheetContent side="right" className="w-70">
                 <SheetHeader className="text-left mb-6">
                   <SheetTitle className="flex items-center gap-2">
                     <Image src={Logo} className="size-8" alt="Logo" />

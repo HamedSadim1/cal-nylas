@@ -57,7 +57,7 @@ export default async function DashboardLayout({
         {/* Sidebar — glassmorphism */}
         <aside className="hidden md:flex flex-col border-r border-border/50 bg-background/70 backdrop-blur-xl">
           {/* Logo */}
-          <div className="flex h-14 items-center gap-3 px-6 border-b border-border/50 lg:h-[60px]">
+          <div className="flex h-14 items-center gap-3 px-6 border-b border-border/50 lg:h-15">
             <Link href="/" className="flex items-center gap-2.5 group">
               <div className="relative">
                 <div className="absolute inset-0 rounded-lg bg-primary/20 blur-md opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
@@ -103,7 +103,7 @@ export default async function DashboardLayout({
         {/* Main content area */}
         <div className="flex flex-col">
           {/* Header — glassmorphism */}
-          <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b border-border/50 bg-background/80 backdrop-blur-xl px-4 lg:h-[60px] lg:px-6">
+          <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b border-border/50 bg-background/80 backdrop-blur-xl px-4 lg:h-15 lg:px-6">
             {/* Mobile menu trigger */}
             <Sheet>
               <SheetTrigger asChild>
@@ -116,7 +116,7 @@ export default async function DashboardLayout({
                   <span className="sr-only">Open menu</span>
                 </Button>
               </SheetTrigger>
-              <SheetContent side="left" className="w-[280px] p-0">
+              <SheetContent side="left" className="w-70 p-0">
                 <SheetHeader className="p-6 pb-2">
                   <SheetTitle className="flex items-center gap-2.5">
                     <Image src={Logo} alt="Logo" className="size-8" />
@@ -157,7 +157,7 @@ export default async function DashboardLayout({
                       height={28}
                       className="size-7 rounded-full ring-1 ring-border"
                     />
-                    <span className="hidden sm:block text-sm font-medium max-w-[100px] truncate">
+                    <span className="hidden sm:block text-sm font-medium max-w-25 truncate">
                       {session.user.name || data.userName}
                     </span>
                     <ChevronDown className="size-3.5 text-muted-foreground hidden sm:block" />

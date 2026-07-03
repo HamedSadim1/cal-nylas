@@ -135,7 +135,7 @@ const CreateNewEvent = () => {
                   key={fields.description.key}
                   defaultValue={fields.description.initialValue}
                   placeholder="A quick catch-up call to discuss your project needs"
-                  className="pl-9 min-h-[80px] resize-none"
+                  className="pl-9 min-h-20 resize-none"
                 />
               </div>
               {fields.description.errors && (

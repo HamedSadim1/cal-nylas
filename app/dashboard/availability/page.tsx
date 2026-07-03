@@ -63,7 +63,7 @@ const AvailabilityPage = async () => {
                 className="flex flex-col sm:flex-row sm:items-center gap-3 p-3 rounded-lg border border-border/60 bg-muted/20 hover:bg-muted/30 transition-colors"
               >
                 <input type="hidden" name={`id-${item.id}`} value={item.id} />
-                <div className="flex items-center gap-3 min-w-[120px]">
+                <div className="flex items-center gap-3 min-w-30">
                   <Switch
                     name={`isActive-${item.id}`}
                     defaultChecked={item.isActive}
