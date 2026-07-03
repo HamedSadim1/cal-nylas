@@ -6,7 +6,8 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "prepare": "husky"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.11.2",
@@ -51,6 +52,19 @@
     "ws": "^8.21.0",
     "zod": "^4.4.3"
   },
+  "lint-staged": {
+    "*.{ts,tsx}": [
+      "eslint --fix"
+    ],
+    "*.{ts,tsx,js,jsx,mjs,cjs,json,css,md}": [
+      "prettier --write"
+    ]
+  },
+  "overrides": {
+    "@hono/node-server": "^1.19.13",
+    "effect": "^3.20.0",
+    "postcss": "^8.5.10"
+  },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
     "@tailwindcss/postcss": "^4.3.2",
@@ -60,7 +74,9 @@
     "@types/ws": "^8.18.1",
     "eslint": "^10",
     "eslint-config-next": "16.2.10",
-    "postcss": "^8",
+    "husky": "^9.1.7",
+    "lint-staged": "^17.0.8",
+    "prettier": "^3.9.4",
     "prisma": "^7.8.0",
     "tailwindcss": "^4.3.2",
     "typescript": "^5.8.3"
