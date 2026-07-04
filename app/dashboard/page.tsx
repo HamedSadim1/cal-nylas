@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 
 import { EmptyState } from "@/components/EmptyState";
+import { ROUTES } from "@/lib/constants";
 
 import {
   DropdownMenu,
@@ -71,7 +72,7 @@ const DashboardPage = async () => {
           </p>
         </div>
         <Button asChild size="lg" className="gap-2 shrink-0">
-          <Link href="/dashboard/new">
+          <Link href={ROUTES.DASHBOARD_NEW}>
             <Plus className="size-5" />
             Create New Event
           </Link>
@@ -84,7 +85,7 @@ const DashboardPage = async () => {
           title="No event types yet"
           description="Create your first event type to start sharing your availability and let people book time with you."
           buttonText="Create Event Type"
-          href="/dashboard/new"
+          href={ROUTES.DASHBOARD_NEW}
         />
       ) : (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -97,7 +98,7 @@ const DashboardPage = async () => {
                 className="group relative rounded-xl border border-border bg-card text-card-foreground shadow-sm hover:shadow-md hover:border-primary/20 transition-all duration-300 overflow-hidden"
               >
                 {/* Card top area */}
-                <Link href={`/dashboard/event/${id}`} className="block p-5">
+                <Link href={`${ROUTES.DASHBOARD_EVENT}/${id}`} className="block p-5">
                   <div className="flex items-start justify-between">
                     <div className="flex items-center gap-4">
                       <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 ring-1 ring-primary/20 group-hover:bg-primary/15 transition-colors">
@@ -138,7 +139,7 @@ const DashboardPage = async () => {
                             meetingUrl={`${process.env.NEXT_PUBLIC_URL}/${data.userName}/${url}`}
                           />
                           <DropdownMenuItem asChild>
-                            <Link href={`/dashboard/event/${id}`}>
+                            <Link href={`${ROUTES.DASHBOARD_EVENT}/${id}`}>
                               <Pen className="mr-2 size-4" />
                               Edit
                             </Link>
@@ -149,7 +150,7 @@ const DashboardPage = async () => {
                           asChild
                           className="text-destructive focus:text-destructive"
                         >
-                          <Link href={`/dashboard/event/${id}/delete`}>
+                          <Link href={`${ROUTES.DASHBOARD_EVENT}/${id}/delete`}>
                             <Trash2 className="mr-2 size-4" />
                             Delete
                           </Link>
@@ -171,7 +172,7 @@ const DashboardPage = async () => {
                     </span>
                   </div>
                   <Button variant="ghost" size="sm" asChild>
-                    <Link href={`/dashboard/event/${id}`}>
+                    <Link href={`${ROUTES.DASHBOARD_EVENT}/${id}`}>
                       <Pen className="size-3.5 mr-1.5" />
                       Edit
                     </Link>

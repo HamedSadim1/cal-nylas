@@ -36,14 +36,14 @@ import {
   Globe,
   Video,
 } from "lucide-react";
-
-type Platform = "Zoom Meeting" | "Google Meet" | "Microsoft Teams";
-
-const PLATFORMS: { label: string; value: Platform }[] = [
-  { label: "Zoom", value: "Zoom Meeting" },
-  { label: "Google Meet", value: "Google Meet" },
-  { label: "Teams", value: "Microsoft Teams" },
-];
+import {
+  PLATFORM_OPTIONS,
+  DEFAULT_PLATFORM,
+  type Platform,
+  MEETING_DURATIONS,
+  ROUTES,
+  APP_URL,
+} from "@/lib/constants";
 
 const CreateNewEvent = () => {
   const [lastResult, action] = useActionState(CreateEventTypeAction, undefined);
@@ -55,13 +55,13 @@ const CreateNewEvent = () => {
     shouldValidate: "onBlur",
     shouldRevalidate: "onInput",
   });
-  const [activePlatform, setActivePlatform] = useState<Platform>("Google Meet");
+  const [activePlatform, setActivePlatform] = useState<Platform>(DEFAULT_PLATFORM);
 
   return (
     <div className="w-full max-w-xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
       {/* Breadcrumb */}
       <Link
-        href="/dashboard"
+        href={ROUTES.DASHBOARD}
         className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors mb-6"
       >
         <ArrowLeft className="size-4" />
@@ -109,7 +109,7 @@ const CreateNewEvent = () => {
               <div className="flex rounded-md shadow-sm">
                 <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-border bg-muted text-muted-foreground text-sm gap-1">
                   <Globe className="size-3.5" />
-                  CalHamed.com/
+                  {APP_URL}/
                 </span>
                 <Input
                   type="text"
@@ -160,10 +160,11 @@ const CreateNewEvent = () => {
                 <SelectContent>
                   <SelectGroup>
                     <SelectLabel>Duration</SelectLabel>
-                    <SelectItem value="15">15 minutes</SelectItem>
-                    <SelectItem value="30">30 minutes</SelectItem>
-                    <SelectItem value="45">45 minutes</SelectItem>
-                    <SelectItem value="60">1 hour</SelectItem>
+                    {MEETING_DURATIONS.map((duration) => (
+                      <SelectItem key={duration} value={String(duration)}>
+                        {duration === 60 ? "1 hour" : `${duration} minutes`}
+                      </SelectItem>
+                    ))}
                   </SelectGroup>
                 </SelectContent>
               </Select>
@@ -183,7 +184,7 @@ const CreateNewEvent = () => {
               />
               <Label className="text-sm font-medium">Video Call Provider</Label>
               <div className="grid grid-cols-3 gap-2">
-                {PLATFORMS.map(({ label, value }) => {
+                {PLATFORM_OPTIONS.map(({ label, value }) => {
                   const isActive = activePlatform === value;
                   return (
                     <button
@@ -207,7 +208,7 @@ const CreateNewEvent = () => {
 
           <CardFooter className="flex justify-between gap-3 border-t border-border pt-6">
             <Button asChild variant="outline" size="lg">
-              <Link href="/dashboard">
+              <Link href={ROUTES.DASHBOARD}>
                 <ArrowLeft className="size-4 mr-1.5" />
                 Cancel
               </Link>

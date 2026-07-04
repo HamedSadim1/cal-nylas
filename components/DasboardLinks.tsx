@@ -5,30 +5,31 @@ import { CalendarCheck, HomeIcon, Settings, Users2 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import React from "react";
+import { ROUTES } from "@/lib/constants";
 
 export const dashboardLinks = [
   {
     id: 0,
     name: "Event Types",
-    href: "/dashboard",
+    href: ROUTES.DASHBOARD,
     icon: HomeIcon,
   },
   {
     id: 1,
     name: "Meetings",
-    href: "/dashboard/meetings",
+    href: ROUTES.DASHBOARD_MEETINGS,
     icon: Users2,
   },
   {
     id: 2,
     name: "Availability",
-    href: "/dashboard/availability",
+    href: ROUTES.DASHBOARD_AVAILABILITY,
     icon: CalendarCheck,
   },
   {
     id: 3,
     name: "Settings",
-    href: "/dashboard/settings",
+    href: ROUTES.DASHBOARD_SETTINGS,
     icon: Settings,
   },
 ];
@@ -39,8 +40,8 @@ export function DasboardLinks() {
     <>
       {dashboardLinks.map((link) => {
         const isActive =
-          link.href === "/dashboard"
-            ? pathname === "/dashboard"
+          link.href === ROUTES.DASHBOARD
+            ? pathname === ROUTES.DASHBOARD
             : pathname.startsWith(link.href);
 
         return (

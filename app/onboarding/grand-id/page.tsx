@@ -21,23 +21,24 @@ import {
 import Link from "next/link";
 import Image from "next/image";
 import Logo from "@/public/logo.png";
+import { APP_BRAND_SHORT, getFooterText, ROUTES, GRANT_ID_FEATURE_TEXTS } from "@/lib/constants";
 
 const features = [
   {
     icon: CheckCircle2,
-    text: "Auto-sync availability",
+    text: GRANT_ID_FEATURE_TEXTS[0],
   },
   {
     icon: Users,
-    text: "Prevent double bookings",
+    text: GRANT_ID_FEATURE_TEXTS[1],
   },
   {
     icon: Globe,
-    text: "Auto timezone conversion",
+    text: GRANT_ID_FEATURE_TEXTS[2],
   },
   {
     icon: Video,
-    text: "Google Meet integration",
+    text: GRANT_ID_FEATURE_TEXTS[3],
   },
 ];
 
@@ -53,7 +54,7 @@ const GrantIdRoute = () => {
       {/* Top bar */}
       <header className="sticky top-0 z-40 bg-background/80 backdrop-blur-xl border-b border-border">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2.5 group">
+          <Link href={ROUTES.HOME} className="flex items-center gap-2.5 group">
             <div className="relative">
               <div className="absolute inset-0 rounded-lg bg-primary/20 blur-md opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
               <Image
@@ -63,11 +64,11 @@ const GrantIdRoute = () => {
               />
             </div>
             <h4 className="text-xl font-bold tracking-tight">
-              Cal<span className="text-primary">Hamed</span>
+              Cal<span className="text-primary">{APP_BRAND_SHORT}</span>
             </h4>
           </Link>
           <Link
-            href="/onboarding"
+            href={ROUTES.ONBOARDING}
             className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
           >
             <ArrowLeft className="size-4" />
@@ -188,7 +189,7 @@ const GrantIdRoute = () => {
                   size="lg"
                   className="relative w-full gap-2.5 h-12 text-base shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-shadow"
                 >
-                  <Link href="/api/auth">
+                  <Link href={ROUTES.API_AUTH}>
                     <CalendarCheck2 className="size-5" />
                     Connect your calendar
                   </Link>
@@ -201,9 +202,7 @@ const GrantIdRoute = () => {
 
       {/* Footer */}
       <footer className="py-6 border-t border-border text-center text-muted-foreground">
-        <p className="text-sm">
-          &copy; {new Date().getFullYear()} CalHamed. All rights reserved.
-        </p>
+        <p className="text-sm">{getFooterText()}</p>
       </footer>
     </div>
   );

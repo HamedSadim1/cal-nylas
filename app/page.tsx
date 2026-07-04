@@ -3,6 +3,7 @@ import { Navbar } from "@/components/Navbar";
 import { redirect } from "next/navigation";
 import { AuthModal } from "@/components/AuthModal";
 import { Calendar, Clock, LinkIcon, Users, Zap, Shield } from "lucide-react";
+import { ROUTES, APP_NAME, getFooterText } from "@/lib/constants";
 
 const features = [
   {
@@ -47,7 +48,7 @@ export default async function Home() {
   const session = await auth();
 
   if (session?.user) {
-    return redirect("/dashboard");
+    return redirect(ROUTES.DASHBOARD);
   }
 
   return (
@@ -66,7 +67,7 @@ export default async function Home() {
           <section className="py-20 md:py-32 animate-in fade-in slide-in-from-bottom-8 duration-500">
             <div className="text-center max-w-4xl mx-auto">
               <span className="inline-block py-1 px-3 rounded-full bg-primary/10 text-primary text-sm font-medium mb-6 border border-primary/20">
-                Welcome to CalHamed
+                Welcome to {APP_NAME}
               </span>
               <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight mb-6 text-foreground">
                 Scheduling made{" "}
@@ -76,7 +77,7 @@ export default async function Home() {
                 simple
               </h1>
               <p className="text-xl md:text-2xl text-muted-foreground mb-10 max-w-2xl mx-auto">
-                Eliminate the back-and-forth emails. CalHamed helps you focus on
+                Eliminate the back-and-forth emails. {APP_NAME} helps you focus on
                 what matters most with automated scheduling and seamless
                 calendar sync.
               </p>
@@ -132,7 +133,7 @@ export default async function Home() {
                   Ready to simplify your scheduling?
                 </h2>
                 <p className="text-xl text-muted-foreground mb-10 max-w-2xl mx-auto">
-                  Join professionals who trust CalHamed to manage their time
+                  Join professionals who trust {APP_NAME} to manage their time
                   effectively. Get started for free today.
                 </p>
                 <AuthModal />
@@ -143,9 +144,7 @@ export default async function Home() {
 
         {/* Footer */}
         <footer className="py-8 border-t border-border text-center text-muted-foreground">
-          <p className="text-sm">
-            &copy; {new Date().getFullYear()} CalHamed. All rights reserved.
-          </p>
+          <p className="text-sm">{getFooterText()}</p>
         </footer>
       </div>
     </div>

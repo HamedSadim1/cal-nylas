@@ -5,6 +5,7 @@ import { nylas, nylasConfig } from "@/lib/nylas";
 
 import { redirect } from "next/navigation";
 import { NextRequest } from "next/server";
+import { ROUTES } from "@/lib/constants";
 
 export async function GET(req: NextRequest) {
   console.log("Received callback from Nylas");
@@ -59,5 +60,5 @@ export async function GET(req: NextRequest) {
     console.error("Error exchanging code for token:", error);
   }
 
-  redirect("/dashboard");
+  redirect(ROUTES.DASHBOARD);
 }

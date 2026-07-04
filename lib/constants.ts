@@ -1,0 +1,99 @@
+// ─── App Branding ───────────────────────────────────────────────────────────────
+export const APP_NAME = "CalHamed" as const;
+export const APP_BRAND_SHORT = "Hamed" as const;
+export const APP_URL = "CalHamed.com" as const;
+export const APP_TITLE = "Calendar App" as const;
+export const APP_DESCRIPTION =
+  "A simple and efficient calendar application to manage your events and schedules." as const;
+/** Use `new Date().getFullYear()` inline to keep the year current across server restarts. */
+export function getFooterText() {
+  return `© ${new Date().getFullYear()} ${APP_NAME}. All rights reserved.`;
+}
+
+// ─── Route Paths ────────────────────────────────────────────────────────────────
+export const ROUTES = {
+  HOME: "/",
+  DASHBOARD: "/dashboard",
+  DASHBOARD_NEW: "/dashboard/new",
+  DASHBOARD_MEETINGS: "/dashboard/meetings",
+  DASHBOARD_AVAILABILITY: "/dashboard/availability",
+  DASHBOARD_SETTINGS: "/dashboard/settings",
+  DASHBOARD_EVENT: "/dashboard/event",
+  ONBOARDING: "/onboarding",
+  ONBOARDING_GRANT_ID: "/onboarding/grand-id",
+  SUCCESS: "/success",
+  API_AUTH: "/api/auth",
+  API_OAUTH_EXCHANGE: "/api/oauth/exchange",
+} as const;
+
+// ─── Days of the Week ───────────────────────────────────────────────────────────
+export const DAYS_OF_WEEK = [
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
+  "Sunday",
+] as const;
+
+// ─── Default Availability ───────────────────────────────────────────────────────
+export const DEFAULT_AVAILABILITY = {
+  FROM_TIME: "08:00",
+  TILL_TIME: "18:00",
+} as const;
+
+// ─── Video Call Platforms ───────────────────────────────────────────────────────
+export const PLATFORMS = {
+  ZOOM: "Zoom Meeting",
+  GOOGLE_MEET: "Google Meet",
+  MICROSOFT_TEAMS: "Microsoft Teams",
+} as const;
+
+export type Platform = (typeof PLATFORMS)[keyof typeof PLATFORMS];
+
+export const PLATFORM_OPTIONS: { label: string; value: Platform }[] = [
+  { label: "Zoom", value: PLATFORMS.ZOOM },
+  { label: "Google Meet", value: PLATFORMS.GOOGLE_MEET },
+  { label: "Teams", value: PLATFORMS.MICROSOFT_TEAMS },
+];
+
+export const DEFAULT_PLATFORM: Platform = PLATFORMS.GOOGLE_MEET;
+
+// Nylas conferencing provider (maps to Nylas API provider string)
+export const NYLAS_CONFERENCING_PROVIDER = "Google Meet" as const;
+
+// ─── Meeting Durations (minutes) ────────────────────────────────────────────────
+export const MEETING_DURATIONS = [15, 30, 45, 60] as const;
+
+// ─── Validation Limits ──────────────────────────────────────────────────────────
+export const VALIDATION = {
+  NAME_MIN: 3,
+  NAME_MAX: 150,
+  TITLE_MIN: 3,
+  TITLE_MAX: 150,
+  URL_MIN: 3,
+  URL_MAX: 150,
+  DESCRIPTION_MIN: 3,
+  DESCRIPTION_MAX: 300,
+  DURATION_MIN: 1,
+  DURATION_MAX: 100,
+  USERNAME_MIN: 3,
+  USERNAME_MAX: 150,
+} as const;
+
+// ─── File Upload Limits ─────────────────────────────────────────────────────────
+export const UPLOAD = {
+  MAX_IMAGE_SIZE: "4MB",
+} as const;
+
+// ─── Date / Time Formatting ─────────────────────────────────────────────────────
+export const LOCALE = "nl-BE" as const;
+
+// ─── Onboarding Grant‑ID Features ───────────────────────────────────────────────
+export const GRANT_ID_FEATURE_TEXTS = [
+  "Auto-sync availability",
+  "Prevent double bookings",
+  "Auto timezone conversion",
+  "Google Meet integration",
+] as const;

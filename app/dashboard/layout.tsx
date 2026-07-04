@@ -27,6 +27,7 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { Toaster } from "@/components/ui/sonner";
 import { auth, signOut } from "@/auth";
 import prisma from "@/lib/db";
+import { ROUTES, APP_BRAND_SHORT } from "@/lib/constants";
 
 async function getData(userId: string) {
   const data = await prisma.user.findUnique({
@@ -46,10 +47,10 @@ export default async function DashboardLayout({
 }) {
   const session = await auth();
 
-  if (!session?.user?.id) return redirect("/");
+  if (!session?.user?.id) return redirect(ROUTES.HOME);
   const data = await getData(session.user.id);
-  if (!data?.userName) return redirect("/onboarding");
-  if (!data.grantId) return redirect("/onboarding/grand-id");
+  if (!data?.userName) return redirect(ROUTES.ONBOARDING);
+  if (!data.grantId) return redirect(ROUTES.ONBOARDING_GRANT_ID);
 
   return (
     <>
@@ -68,7 +69,7 @@ export default async function DashboardLayout({
                 />
               </div>
               <span className="text-lg font-bold tracking-tight">
-                Cal<span className="text-primary">Hamed</span>
+                Cal<span className="text-primary">{APP_BRAND_SHORT}</span>
               </span>
             </Link>
           </div>
@@ -129,7 +130,7 @@ export default async function DashboardLayout({
                   <SheetTitle className="flex items-center gap-2.5">
                     <Image src={Logo} alt="Logo" className="size-8" />
                     <span className="text-xl font-bold">
-                      Cal<span className="text-primary">Hamed</span>
+                      Cal<span className="text-primary">{APP_BRAND_SHORT}</span>
                     </span>
                   </SheetTitle>
                 </SheetHeader>
@@ -183,9 +184,9 @@ export default async function DashboardLayout({
                   <DropdownMenuLabel>My Account</DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem asChild>
-                    <Link
-                      href="/dashboard/settings"
-                      className="flex items-center gap-2"
+            <Link
+              href={ROUTES.DASHBOARD_SETTINGS}
+              className="flex items-center gap-2"
                     >
                       <Settings className="size-4" />
                       Settings

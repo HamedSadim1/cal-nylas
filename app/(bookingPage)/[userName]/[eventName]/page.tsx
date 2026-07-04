@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import prisma from "@/lib/db";
 import { BookMarked, CalendarX2, Clock } from "lucide-react";
+import { LOCALE } from "@/lib/constants";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import React from "react";
@@ -86,7 +87,7 @@ const BookingPage = async ({ params, searchParams }: BookingPageProps) => {
   // console.log("🚀 ~ BookingPage ~ eventType:", eventType);
   const selectedDate = date ? new Date(date) : new Date();
 
-  const formattedDate = new Intl.DateTimeFormat("nl-BE", {
+  const formattedDate = new Intl.DateTimeFormat(LOCALE, {
     weekday: "long",
     day: "numeric",
     month: "long",
@@ -218,7 +219,7 @@ const BookingPage = async ({ params, searchParams }: BookingPageProps) => {
                 <p className="flex items-center">
                   <BookMarked className="size-4 mr-2 text-primary" />
                   <span className="text-sm font-medium text-muted-foreground">
-                    Google Meet
+                    {eventType.videoCallSoftware}
                   </span>
                 </p>
               </div>

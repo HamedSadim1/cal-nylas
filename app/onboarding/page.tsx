@@ -20,6 +20,7 @@ import Image from "next/image";
 import Link from "next/link";
 import Logo from "@/public/logo.png";
 import { ArrowLeft, User, AtSign } from "lucide-react";
+import { APP_BRAND_SHORT, APP_URL, getFooterText, ROUTES } from "@/lib/constants";
 
 const OnboardingPage = () => {
   const [lastResult, action] = useActionState(onboardingAction, undefined);
@@ -52,11 +53,11 @@ const OnboardingPage = () => {
               />
             </div>
             <h4 className="text-xl font-bold tracking-tight">
-              Cal<span className="text-primary">Hamed</span>
+              Cal<span className="text-primary">{APP_BRAND_SHORT}</span>
             </h4>
           </Link>
           <Link
-            href="/"
+            href={ROUTES.HOME}
             className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
           >
             <ArrowLeft className="size-4" />
@@ -131,7 +132,7 @@ const OnboardingPage = () => {
                   <div className="flex rounded-md shadow-sm">
                     <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-border bg-muted text-muted-foreground text-sm gap-1">
                       <AtSign className="size-3.5" />
-                      CalHamed.com/
+                      {APP_URL}/
                     </span>
                     <Input
                       type="text"
@@ -160,9 +161,7 @@ const OnboardingPage = () => {
 
       {/* Footer */}
       <footer className="py-6 border-t border-border text-center text-muted-foreground">
-        <p className="text-sm">
-          &copy; {new Date().getFullYear()} CalHamed. All rights reserved.
-        </p>
+        <p className="text-sm">{getFooterText()}</p>
       </footer>
     </div>
   );

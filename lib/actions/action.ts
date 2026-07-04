@@ -12,6 +12,12 @@ import { getFormString } from "../utils";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { nylas } from "../nylas";
+import {
+  ROUTES,
+  DAYS_OF_WEEK,
+  DEFAULT_AVAILABILITY,
+  NYLAS_CONFERENCING_PROVIDER,
+} from "../constants";
 
 /**
  * Handles the onboarding action by authenticating the user, validating the form data,
@@ -60,50 +66,18 @@ export async function onboardingAction(prevState: unknown, formData: FormData) {
       name: submission.value.fullName,
       Availability: {
         createMany: {
-          data: [
-            {
-              day: "Monday",
-              fromTime: "08:00",
-              tillTime: "18:00",
-            },
-            {
-              day: "Tuesday",
-              fromTime: "08:00",
-              tillTime: "18:00",
-            },
-            {
-              day: "Wednesday",
-              fromTime: "08:00",
-              tillTime: "18:00",
-            },
-            {
-              day: "Thursday",
-              fromTime: "08:00",
-              tillTime: "18:00",
-            },
-            {
-              day: "Friday",
-              fromTime: "08:00",
-              tillTime: "18:00",
-            },
-            {
-              day: "Saturday",
-              fromTime: "08:00",
-              tillTime: "18:00",
-            },
-            {
-              day: "Sunday",
-              fromTime: "08:00",
-              tillTime: "18:00",
-            },
-          ],
+          data: DAYS_OF_WEEK.map((day) => ({
+            day,
+            fromTime: DEFAULT_AVAILABILITY.FROM_TIME,
+            tillTime: DEFAULT_AVAILABILITY.TILL_TIME,
+          })),
         },
       },
     },
   });
   console.log(OnboardingData);
 
-  redirect("/onboarding/grand-id");
+  redirect(ROUTES.ONBOARDING_GRANT_ID);
 }
 
 export async function SettingsAction(prevState: unknown, formData: FormData) {
@@ -132,7 +106,7 @@ export async function SettingsAction(prevState: unknown, formData: FormData) {
   });
   console.log("🚀 ~ SettingsAction ~ user:", user);
 
-  return redirect("/dashboard");
+  return redirect(ROUTES.DASHBOARD);
 }
 
 /**
@@ -187,7 +161,7 @@ export async function updateAvailabilityAction(formData: FormData) {
       )
     );
 
-    revalidatePath("/dashboard/availability");
+    revalidatePath(ROUTES.DASHBOARD_AVAILABILITY);
     // return { status: "success", message: "Availability updated successfully" };
     // return redirect("/dashboard/availability");
   } catch (error) {
@@ -238,7 +212,7 @@ export async function updateEventTypeStatusAction(
 
     console.log("updated event type:", data);
 
-    revalidatePath(`/dashboard`);
+    revalidatePath(ROUTES.DASHBOARD);
     return {
       status: "success",
       message: "EventType Status updated successfully",
@@ -303,7 +277,7 @@ export async function createMeetingAction(formData: FormData) {
       },
       conferencing: {
         autocreate: {},
-        provider: "Google Meet",
+        provider: NYLAS_CONFERENCING_PROVIDER,
       },
       participants: [
         {
@@ -319,7 +293,7 @@ export async function createMeetingAction(formData: FormData) {
     },
   });
 
-  return redirect(`/success`);
+  return redirect(ROUTES.SUCCESS);
 }
 
 export async function CreateEventTypeAction(
@@ -365,5 +339,5 @@ export async function CreateEventTypeAction(
   });
   console.log("🚀 ~ data:", data);
 
-  return redirect("/dashboard");
+  return redirect(ROUTES.DASHBOARD);
 }
