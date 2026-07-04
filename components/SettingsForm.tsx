@@ -14,7 +14,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { IconInput } from "@/components/IconInput";
 import { useForm } from "@conform-to/react";
-import { parseWithZod } from "@conform-to/zod";
+import { parseWithZod } from "@conform-to/zod/v4";
 import { SubmitButton } from "./SubmitButton";
 import { UploadDropzone } from "@/lib/uploadthing";
 import Image from "next/image";

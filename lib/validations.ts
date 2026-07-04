@@ -1,5 +1,5 @@
-import { z } from "zod";
-import { conformZodMessage } from "@conform-to/zod";
+import { z } from "zod/v4";
+import { conformZodMessage } from "@conform-to/zod/v4";
 import { VALIDATION } from "@/lib/constants";
 
 // ─── Onboarding schemas (DRY base + .extend) ───────────────────────────────

@@ -2,7 +2,7 @@
 
 import { requireUser, requireNylasGrant } from "../auth";
 import prisma from "../db";
-import { parseWithZod } from "@conform-to/zod";
+import { parseWithZod } from "@conform-to/zod/v4";
 import {
   aboutSettingsSchema,
   EventTypeServerSchema,

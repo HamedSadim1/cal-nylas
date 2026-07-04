@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import React, { useActionState } from "react";
 import { SubmitButton } from "@/components/SubmitButton";
-import { parseWithZod } from "@conform-to/zod";
+import { parseWithZod } from "@conform-to/zod/v4";
 import { onboardingSchemaLocale } from "@/lib/validations";
 import { useForm } from "@conform-to/react";
 import { onboardingAction } from "@/lib/actions/action";
