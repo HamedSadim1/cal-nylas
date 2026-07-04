@@ -26,7 +26,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { MenuActiveSwitcher } from "@/components/EventTypeSwitcher";
 import { CopyLinkMenuItem } from "@/components/CopyLinkMenuItem";
-import { auth } from "@/auth";
+import { requireUser } from "@/lib/auth";
 
 type EventTypeRow = NonNullable<
   Awaited<ReturnType<typeof getData>>
@@ -55,8 +55,7 @@ async function getData(id: string) {
 }
 
 const DashboardPage = async () => {
-  const session = await auth();
-  if (!session?.user?.id) return notFound();
+  const session = await requireUser({ redirectTo: ROUTES.HOME });
   const data = await getData(session.user.id);
 
   return (
@@ -98,7 +97,10 @@ const DashboardPage = async () => {
                 className="group relative rounded-xl border border-border bg-card text-card-foreground shadow-sm hover:shadow-md hover:border-primary/20 transition-all duration-300 overflow-hidden"
               >
                 {/* Card top area */}
-                <Link href={`${ROUTES.DASHBOARD_EVENT}/${id}`} className="block p-5">
+                <Link
+                  href={`${ROUTES.DASHBOARD_EVENT}/${id}`}
+                  className="block p-5"
+                >
                   <div className="flex items-start justify-between">
                     <div className="flex items-center gap-4">
                       <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 ring-1 ring-primary/20 group-hover:bg-primary/15 transition-colors">

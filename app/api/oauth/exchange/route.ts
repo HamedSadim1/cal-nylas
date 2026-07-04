@@ -10,10 +10,8 @@ import { ROUTES } from "@/lib/constants";
 export async function GET(req: NextRequest) {
   console.log("Received callback from Nylas");
   const session = await auth();
-  if (!session?.user) {
-    return Response.json("No user signed in", {
-      status: 401,
-    });
+  if (!session?.user?.id) {
+    return Response.json("Unauthorized", { status: 401 });
   }
   const url = req.nextUrl;
   console.log("🚀 ~ GET ~ url:", url);
@@ -40,10 +38,6 @@ export async function GET(req: NextRequest) {
     const response = await nylas.auth.exchangeCodeForToken(codeExchangePayload);
     console.log("🚀 ~ GET ~ response:", response);
     const { grantId, email } = response;
-
-    if (!session?.user?.id) {
-      return Response.json("No user ID in session", { status: 401 });
-    }
 
     await prisma.user.update({
       where: {

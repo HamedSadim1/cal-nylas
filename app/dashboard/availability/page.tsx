@@ -21,7 +21,8 @@ import { Switch } from "@/components/ui/switch";
 import { notFound } from "next/navigation";
 import React from "react";
 import { updateAvailabilityAction } from "@/lib/actions/action";
-import { auth } from "@/auth";
+import { requireUser } from "@/lib/auth";
+import { ROUTES } from "@/lib/constants";
 import { CalendarCheck, Clock } from "lucide-react";
 
 type AvailabilityRow = Awaited<ReturnType<typeof getData>>[number];
@@ -36,8 +37,7 @@ async function getData(userId: string) {
 }
 
 const AvailabilityPage = async () => {
-  const session = await auth();
-  if (!session?.user?.id) return notFound();
+  const session = await requireUser({ redirectTo: ROUTES.HOME });
   const data = await getData(session.user.id);
 
   return (

@@ -1,5 +1,6 @@
 import { SettingsForm } from "@/components/SettingsForm";
-import { auth } from "@/auth";
+import { requireUser } from "@/lib/auth";
+import { ROUTES } from "@/lib/constants";
 import prisma from "@/lib/db";
 import { notFound } from "next/navigation";
 import React from "react";
@@ -19,8 +20,7 @@ async function getData(id: string) {
 }
 
 const SettingsPage = async () => {
-  const session = await auth();
-  if (!session?.user?.id) return notFound();
+  const session = await requireUser({ redirectTo: ROUTES.HOME });
   const data = await getData(session.user.id);
 
   return (

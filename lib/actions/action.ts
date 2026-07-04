@@ -1,6 +1,6 @@
 "use server";
 
-import { auth } from "@/auth";
+import { requireUser, requireNylasGrant } from "../auth";
 import prisma from "../db";
 import { parseWithZod } from "@conform-to/zod";
 import {
@@ -29,12 +29,7 @@ import {
  * @throws Will throw an error if the user is not authenticated.
  */
 export async function onboardingAction(prevState: unknown, formData: FormData) {
-  // Authenticate the user and get their session
-  const session = await auth();
-  // Throw an error if the user is not authenticated
-  if (!session?.user?.id) {
-    throw new Error("User not authenticated");
-  }
+  const session = await requireUser();
 
   // Validate the form data using Zod schema and custom async validation function for username uniqueness check
   const submission = await parseWithZod(formData, {
@@ -81,11 +76,7 @@ export async function onboardingAction(prevState: unknown, formData: FormData) {
 }
 
 export async function SettingsAction(prevState: unknown, formData: FormData) {
-  const session = await auth();
-
-  if (!session?.user?.id) {
-    throw new Error("User not authenticated");
-  }
+  const session = await requireUser();
 
   const submission = parseWithZod(formData, {
     schema: aboutSettingsSchema,
@@ -123,11 +114,7 @@ export async function SettingsAction(prevState: unknown, formData: FormData) {
  * @returns {Promise<void>} A promise that resolves when the availability is updated and the user is redirected.
  */
 export async function updateAvailabilityAction(formData: FormData) {
-  const session = await auth();
-
-  if (!session?.user) {
-    throw new Error("User not authenticated");
-  }
+  await requireUser();
 
   // Process the form data to extract availability information and update the database records
   const rawData = Object.fromEntries(formData.entries());
@@ -157,8 +144,8 @@ export async function updateAvailabilityAction(formData: FormData) {
             fromTime: item.fromTime,
             tillTime: item.tillTime,
           },
-        })
-      )
+        }),
+      ),
     );
 
     revalidatePath(ROUTES.DASHBOARD_AVAILABILITY);
@@ -189,14 +176,10 @@ export async function updateEventTypeStatusAction(
   }: {
     eventTypeId: string;
     isChecked: boolean;
-  }
+  },
 ) {
   try {
-    const session = await auth();
-    if (!session?.user?.id) {
-      throw new Error("User not authenticated");
-    }
-
+    const session = await requireUser();
     const userId = session.user.id;
 
     // Update the status of the event type in the database based on the provided event type ID and status
@@ -243,9 +226,7 @@ export async function createMeetingAction(formData: FormData) {
     throw new Error("User not found");
   }
 
-  if (!getUserData.grantId || !getUserData.grantEmail) {
-    throw new Error("User has not connected their calendar");
-  }
+  const { grantId, grantEmail } = requireNylasGrant(getUserData);
 
   const eventTypeData = await prisma.eventType.findUnique({
     where: {
@@ -267,7 +248,7 @@ export async function createMeetingAction(formData: FormData) {
   const endDateTime = new Date(startDateTime.getTime() + meetingLength * 60000);
 
   await nylas.events.create({
-    identifier: getUserData.grantId,
+    identifier: grantId,
     requestBody: {
       title: eventTypeData?.title,
       description: eventTypeData?.description,
@@ -288,7 +269,7 @@ export async function createMeetingAction(formData: FormData) {
       ],
     },
     queryParams: {
-      calendarId: getUserData.grantEmail,
+      calendarId: grantEmail,
       notifyParticipants: true,
     },
   });
@@ -298,13 +279,9 @@ export async function createMeetingAction(formData: FormData) {
 
 export async function CreateEventTypeAction(
   prevState: unknown,
-  formData: FormData
+  formData: FormData,
 ) {
-  const session = await auth();
-
-  if (!session?.user?.id) {
-    throw new Error("User not authenticated");
-  }
+  const session = await requireUser();
 
   const userId = session.user.id;
 

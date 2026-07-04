@@ -9,6 +9,7 @@ import {
 import prisma from "../lib/db";
 import { Prisma } from "@prisma/client";
 import { nylas } from "../lib/nylas";
+import { requireNylasGrant } from "../lib/auth";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { NylasResponse, GetFreeBusyResponse, FreeBusyType } from "nylas";
@@ -52,20 +53,18 @@ async function getAvailability(selectedDate: Date, userName: string) {
       },
     },
   });
-  if (!data?.User?.grantId || !data?.User?.grantEmail) {
-    throw new Error("User has not connected their calendar");
-  }
+  const { grantId, grantEmail } = requireNylasGrant(data?.User);
 
   // Get free/busy data from Nylas for the selected day and user
   const nylasCalendarData = await nylas.calendars.getFreeBusy({
-    identifier: data.User.grantId,
+    identifier: grantId,
     requestBody: {
       // Convert the start and end of the day to Unix timestamps
       startTime: Math.floor(startOfDay.getTime() / 1000),
       // Convert the end of the day to a Unix timestamp
       endTime: Math.floor(endOfDay.getTime() / 1000),
       // Specify the user's email for the free/busy data
-      emails: [data.User.grantEmail],
+      emails: [grantEmail],
     },
   });
 
@@ -88,7 +87,7 @@ function calculateAvailableTimeSlots(
   },
   nylasData: NylasResponse<GetFreeBusyResponse[]>,
   date: string,
-  duration: number
+  duration: number,
 ) {
   const now = new Date(); // Get the current time
 
@@ -96,12 +95,12 @@ function calculateAvailableTimeSlots(
   const availableFrom = parse(
     `${date} ${dbAvailability.fromTime}`,
     "yyyy-MM-dd HH:mm",
-    new Date()
+    new Date(),
   );
   const availableTill = parse(
     `${date} ${dbAvailability.tillTime}`,
     "yyyy-MM-dd HH:mm",
-    new Date()
+    new Date(),
   );
 
   // Extract busy slots from Nylas data.
@@ -132,7 +131,7 @@ function calculateAvailableTimeSlots(
         (busy: { start: Date; end: Date }) =>
           (!isBefore(slot, busy.start) && isBefore(slot, busy.end)) ||
           (isAfter(slotEnd, busy.start) && !isAfter(slotEnd, busy.end)) ||
-          (isBefore(slot, busy.start) && isAfter(slotEnd, busy.end))
+          (isBefore(slot, busy.start) && isAfter(slotEnd, busy.end)),
       )
     );
   });
@@ -159,7 +158,7 @@ export async function TimeSlots({
   // Fetch availability data and Nylas calendar data
   const { data, nylasCalendarData } = await getAvailability(
     selectedDate,
-    userName
+    userName,
   );
 
   // Extract DB availability data from the response object
@@ -173,7 +172,7 @@ export async function TimeSlots({
     dbAvailability,
     nylasCalendarData,
     formattedDate,
-    meetingDuration
+    meetingDuration,
   );
 
   return (

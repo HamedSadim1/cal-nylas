@@ -25,9 +25,10 @@ import Image from "next/image";
 import { DasboardLinks } from "@/components/DasboardLinks";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { Toaster } from "@/components/ui/sonner";
-import { auth, signOut } from "@/auth";
+import { signOut } from "@/auth";
 import prisma from "@/lib/db";
 import { ROUTES, APP_BRAND_SHORT } from "@/lib/constants";
+import { requireUser } from "@/lib/auth";
 
 async function getData(userId: string) {
   const data = await prisma.user.findUnique({
@@ -45,9 +46,7 @@ export default async function DashboardLayout({
 }: {
   children: ReactNode;
 }) {
-  const session = await auth();
-
-  if (!session?.user?.id) return redirect(ROUTES.HOME);
+  const session = await requireUser({ redirectTo: ROUTES.HOME });
   const data = await getData(session.user.id);
   if (!data?.userName) return redirect(ROUTES.ONBOARDING);
   if (!data.grantId) return redirect(ROUTES.ONBOARDING_GRANT_ID);
@@ -159,21 +158,23 @@ export default async function DashboardLayout({
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <button className="flex items-center gap-2.5 hover:bg-accent rounded-lg px-2 py-1.5 transition-colors">
-                  {session.user.image ? (
-                    <Image
-                      src={session.user.image}
-                      alt="Profile"
-                      width={28}
-                      height={28}
-                      className="size-7 rounded-full ring-1 ring-border"
-                    />
-                  ) : (
-                    <div className="size-7 rounded-full bg-primary/10 ring-1 ring-border flex items-center justify-center">
-                      <span className="text-[10px] font-medium text-primary">
-                        {(session.user.name || data.userName || "?").charAt(0)}
-                      </span>
-                    </div>
-                  )}
+                    {session.user.image ? (
+                      <Image
+                        src={session.user.image}
+                        alt="Profile"
+                        width={28}
+                        height={28}
+                        className="size-7 rounded-full ring-1 ring-border"
+                      />
+                    ) : (
+                      <div className="size-7 rounded-full bg-primary/10 ring-1 ring-border flex items-center justify-center">
+                        <span className="text-[10px] font-medium text-primary">
+                          {(session.user.name || data.userName || "?").charAt(
+                            0,
+                          )}
+                        </span>
+                      </div>
+                    )}
                     <span className="hidden sm:block text-sm font-medium max-w-25 truncate">
                       {session.user.name || data.userName}
                     </span>
@@ -184,9 +185,9 @@ export default async function DashboardLayout({
                   <DropdownMenuLabel>My Account</DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem asChild>
-            <Link
-              href={ROUTES.DASHBOARD_SETTINGS}
-              className="flex items-center gap-2"
+                    <Link
+                      href={ROUTES.DASHBOARD_SETTINGS}
+                      className="flex items-center gap-2"
                     >
                       <Settings className="size-4" />
                       Settings
