@@ -1,23 +1,59 @@
 import path from "node:path";
 import type { NextConfig } from "next";
 
-// Use `join(process.cwd(), …)` rather than `path.resolve("…")` so the
-// resolution is explicit about its base (project root at `next build`
-// time) — avoids silent breakage if `next.config.ts` is ever evaluated
-// from a different CWD (e.g. workspace tooling).
+// Project-root-prefixed absolute paths, used by both the webpack and
+// Turbopack alias blocks below. Turbopack's `resolveAlias` requires
+// values that resolve to a concrete file; webpack's `$`-anchored
+// aliases accept either specifiers or paths. Prefixing with
+// `process.cwd()` keeps the resolution explicit and avoids surprises
+// if `next.config.ts` is ever evaluated outside the project root.
 const ZOD_V3_SHIM = path.join(process.cwd(), "lib", "zod-shim.mjs");
+// `dist/v4/index.mjs` and `dist/v4/future.mjs` ship in
+// `@conform-to/zod@1.19.4` and are the ONLY paths the app actually
+// imports from. We point the legacy `@conform-to/zod*` specifiers at
+// these concrete files so Turbopack never enters `dist/default/` or
+// `dist/v3/` (whose `coercion.mjs` references legacy v3-only zod
+// symbols that real zod 4.x removed).
+const CONFORM_V4_INDEX = path.join(
+  process.cwd(),
+  "node_modules",
+  "@conform-to",
+  "zod",
+  "dist",
+  "v4",
+  "index.mjs",
+);
+const CONFORM_V4_FUTURE = path.join(
+  process.cwd(),
+  "node_modules",
+  "@conform-to",
+  "zod",
+  "dist",
+  "v4",
+  "future.mjs",
+);
 
 const nextConfig: NextConfig = {
   /* config options here */
-  // Defensive: redirect any leftover default/v3/v3·future `conform/zod` import
-  // to the v4 subpath at the bundler level. The `/v3` dist re-exports
-  // `ZodPipeline` (and other v3-only symbols) from `zod/v3`, which zod v4.x
-  // no longer exposes — so even a single transitive default or `/v3` import
-  // stalls the `next build` server bundle compilation. The `$` suffix forces
-  // exact match so `@conform-to/zod/v4` resolves to itself (no circular alias).
-  webpack: (config) => {
-    // `Object.assign` over `...config.resolve.alias` so we don't drop entries
-    // if Next/Webpack ever switches the alias shape to an array form.
+  // Webpack alias for LOCAL builds (`next dev` / local `next build`).
+  // Vercel uses Turbopack for `next build` — that path uses the
+  // `turbopack.resolveAlias` block below. Both blocks share the same
+  // intent (redirect the legacy `@conform-to/zod*` specifiers to the
+  // safe `/v4` subpath and redirect bare `'zod'` / `'zod/v3'` to
+  // `lib/zod-shim.mjs`) but use the syntax each bundler expects.
+  // The `$` suffix forces exact match so legitimate specifiers
+  // (`@conform-to/zod/v4`, `zod/v4`, `zod-validation-error`) are not
+  // affected.
+  webpack: (config, { isServer }) => {
+    // Skip the alias on client builds — the client's app code only
+    // touches `@conform-to/zod/v4` (whose own `'zod/v4'` import
+    // resolves normally), so there's no dead-coercion.mjs fallthrough
+    // on the client. Skipping also avoids any chance of the alias
+    // shape regressing in a future Next.js client-build pass.
+    if (!isServer) return config;
+    // `Object.assign` over `...config.resolve.alias` so we don't drop
+    // entries if Next/Webpack ever switches the alias shape to an
+    // array form.
     Object.assign((config.resolve.alias ??= {}), {
       "@conform-to/zod$": "@conform-to/zod/v4",
       "@conform-to/zod/v3$": "@conform-to/zod/v4",
@@ -25,33 +61,43 @@ const nextConfig: NextConfig = {
       // Belt-and-suspenders shim: redirect the bare `'zod'` (top-level)
       // and `'zod/v3'` specifiers to `lib/zod-shim.mjs`. Real zod 4.x
       // renamed/removed the legacy class names that
-      // `@conform-to/zod/dist/(default|v3)/coercion.mjs` references; our
-      // shim re-exports `zod/v4` and stubs the missing classes for
-      // bundler-time static analysis only.
-      // `$` is exact match — we DO NOT alias `'zod/v4'` (so the app's
-      // own `import { z } from "zod/v4"` still resolves normally).
+      // `@conform-to/zod/dist/(default|v3)/coercion.mjs` references if
+      // either is ever reached transitively.
       zod$: ZOD_V3_SHIM,
       "zod/v3$": ZOD_V3_SHIM,
     });
     return config;
   },
-  // Forward-compat analog for `next build --turbopack` (and any future
-  // Turbopack work). Turbopack aliases are prefix-segment matched — a
-  // bare `zod` key would otherwise be a prefix for ANY `zod/*` subpath.
-  // Listing the v4 family of subpaths EXPLICITLY FIRST with
-  // self-referential values makes resolution for those subpaths
-  // unambiguous regardless of how the bundler orders specificity.
-  // The bare `zod:` and `zod/v3:` keys then safely redirect to the
-  // shim.
+  // CRITICAL: do NOT add `@conform-to/zod` to `serverExternalPackages`.
+  // That option tells Next.js to Node-File-Trace the package's
+  // `exports` map (every subpath including `dist/default/index.mjs`),
+  // which then statically walks `dist/default/coercion.mjs` and
+  // fails the build because real zod 4.x removed the v3-only class
+  // names it imports (`ZodBranded`, `ZodEffects`, `ZodPipeline`). The
+  // build needs to be lazy: it should only bundle what the app
+  // actually imports (`@conform-to/zod/v4`), not every subpath the
+  // package exposes. Leaving `serverExternalPackages` empty (or
+  // omitting the key entirely) keeps the build lazy.
+  // Forward-compat block for `next build --turbopack` (Vercel runs
+  // Turbopack for `next build` by default in Next.js 16+).
+  //
+  // Two requirements per the Next.js docs:
+  //  1. Values are absolute file paths, NOT other specifiers. Turbopack
+  //     does not recursively re-resolve alias values, so a value like
+  //     `@conform-to/zod/v4` causes a module-not-found error instead of
+  //     resolving to the package's `exports` entry. We instead point at
+  //     the concrete `dist/v4/index.mjs` / `dist/v4/future.mjs` files.
+  //  2. Aliases are prefix-segment matched. We DO NOT alias `'zod/v4'`
+  //     / `'zod/v4-mini'` etc. — the app's own `import { z } from
+  //     "zod/v4"` and the v4 subpath resolvers need to flow through
+  //     normal node resolution. We only redirect the legacy `'zod'`
+  //     and `'zod/v3'` specifiers and the legacy bare `@conform-to/zod`
+  //     specifiers.
   turbopack: {
     resolveAlias: {
-      "@conform-to/zod": "@conform-to/zod/v4",
-      "@conform-to/zod/v3": "@conform-to/zod/v4",
-      "@conform-to/zod/v3/future": "@conform-to/zod/v4/future",
-      "zod/v4": "zod/v4",
-      "zod/v4-mini": "zod/v4-mini",
-      "zod/v4/core": "zod/v4/core",
-      "zod/v4/locales": "zod/v4/locales",
+      "@conform-to/zod": CONFORM_V4_INDEX,
+      "@conform-to/zod/v3": CONFORM_V4_INDEX,
+      "@conform-to/zod/v3/future": CONFORM_V4_FUTURE,
       "zod/v3": ZOD_V3_SHIM,
       zod: ZOD_V3_SHIM,
     },
