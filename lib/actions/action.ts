@@ -202,9 +202,23 @@ export async function updateEventTypeStatusAction(
 export async function createMeetingAction(formData: FormData) {
   // console.log("🚀 ~ createMeetingAction ~ formData:", formData);
 
+  /**
+   * Form-key convention: the hidden input on the booking page is
+   * `<input name="username" value={userName} />` (matches the onboarding
+   * form's lowercase `name` attribute, where Conform also parses the
+   * `username` slug via `submission.value.username`). The DB column is
+   * `userName` (camelCase) — Prisma doesn't care about JS property casing
+   * for the WHERE clause; what matters is the form key on the HTML
+   * element == the form key passed to `FormData.get(...)`.
+   *
+   * Earlier this read `"userName"` (camelCase), which never matched the
+   * hidden input's `"username"` lowercase key — `getFormString` would
+   * throw `"Form field \"userName\" is required"` and every booking
+   * submission silently failed server-side.
+   */
   const getUserData = await prisma.user.findUnique({
     where: {
-      userName: getFormString(formData, "userName"),
+      userName: getFormString(formData, "username"),
     },
     select: {
       grantEmail: true,
