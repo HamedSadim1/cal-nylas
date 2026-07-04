@@ -1,4 +1,6 @@
-import { parse } from "date-fns";
+import { format, parse } from "date-fns";
+import { nlBE } from "date-fns/locale";
+import { LOCALE } from "./constants";
 
 // ─── Date/time format strings (SSOT for date-fns `format(d, …)` calls) ────────
 /**
@@ -8,10 +10,14 @@ import { parse } from "date-fns";
  * UI-wide format change is a one-file edit.
  */
 export const DATE_FORMATS = {
-  /** Long weekday name, e.g. "Monday". Used to query Prisma `Availability.day` enum. */
+  /** Long weekday name, e.g. "Monday" (locale-dependent, e.g. "maandag"). */
   WEEKDAY_LONG: "EEEE",
   /** Short weekday name, e.g. "Mon". */
   WEEKDAY_SHORT: "EEE",
+  /** Long month name, e.g. "May" (locale-dependent, e.g. "mei"). */
+  MONTH_LONG: "MMMM",
+  /** Numeric day-of-month, no leading zero, e.g. "4". */
+  DAY_NUMERIC: "d",
   /** Short month + day with a literal dot separator, e.g. "May. 4". */
   MONTH_DAY: "MMM. d",
   /** ISO calendar date, e.g. "2026-07-04". */
@@ -19,6 +25,48 @@ export const DATE_FORMATS = {
   /** Time of day, e.g. "09:30". */
   TIME_HOUR_MINUTE: "HH:mm",
 } as const;
+
+// ─── Locale registry ──────────────────────────────────────────────────────────
+/**
+ * Maps each user-facing `LOCALE` string in `lib/constants.ts` to its matching
+ * `date-fns/locale` `Locale` object. This is the single place `date-fns`
+ * locale data is imported — callers never need `import { nlBE } from
+ * "date-fns/locale"` directly.
+ *
+ * Why a registry instead of `import { nlBE }` at the top-level: when the i18n
+ * story grows, adding `"en-US": enUS, "fr-FR": frFR, …` is a one-line change
+ * and `formatLongDate(d, "en-US")` Just Works without hunting call sites.
+ */
+export const DATE_LOCALES = {
+  [LOCALE]: nlBE,
+} as const;
+
+/** Keys of {@link DATE_LOCALES}. Extend the registry to widen this union. */
+export type SupportedLocale = keyof typeof DATE_LOCALES;
+
+/** The project's default user-facing locale for date formatting. */
+export const DEFAULT_LOCALE: SupportedLocale = LOCALE;
+
+// ─── Locale-aware formatting helpers ─────────────────────────────────────────
+/**
+ * Formats a date in user-facing long-form: `{WEEKDAY_LONG} {DAY_NUMERIC}
+ * {MONTH_LONG}` with the project's default locale. Centralizes the only
+ * previous `new Intl.DateTimeFormat(LOCALE, { weekday: "long", day: "numeric",
+ * month: "long" }).format(d)` call site (the booking page).
+ *
+ * Pass a non-default `localeKey` to render for an alternate locale. Adding a
+ * new locale is one entry in {@link DATE_LOCALES}.
+ */
+export function formatLongDate(
+  date: Date,
+  localeKey: SupportedLocale = DEFAULT_LOCALE,
+): string {
+  return format(
+    date,
+    `${DATE_FORMATS.WEEKDAY_LONG} ${DATE_FORMATS.DAY_NUMERIC} ${DATE_FORMATS.MONTH_LONG}`,
+    { locale: DATE_LOCALES[localeKey] },
+  );
+}
 
 // ─── Parsing helpers ──────────────────────────────────────────────────────────
 /**
