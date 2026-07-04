@@ -1,14 +1,9 @@
 import { SubmitButton } from "@/components/SubmitButton";
 import prisma from "@/lib/db";
 import { times } from "@/lib/times";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import { IconCardHeader } from "@/components/IconCardHeader";
+import { PageContainer } from "@/components/PageContainer";
 import {
   Select,
   SelectContent,
@@ -41,19 +36,13 @@ const AvailabilityPage = async () => {
   const data = await getData(session.user.id);
 
   return (
-    <div className="w-full max-w-xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
+    <PageContainer>
       <Card className="border-border/60 shadow-lg">
-        <CardHeader className="text-center pb-2">
-          <div className="mx-auto mb-4 size-12 rounded-xl bg-primary/10 flex items-center justify-center ring-1 ring-primary/20">
-            <CalendarCheck className="size-6 text-primary" />
-          </div>
-          <CardTitle className="text-2xl font-bold tracking-tight">
-            Availability
-          </CardTitle>
-          <CardDescription>
-            Set your weekly availability for scheduling
-          </CardDescription>
-        </CardHeader>
+        <IconCardHeader
+          icon={CalendarCheck}
+          title="Availability"
+          description="Set your weekly availability for scheduling"
+        />
 
         <form action={updateAvailabilityAction}>
           <CardContent className="flex flex-col gap-y-3 pt-2">
@@ -130,7 +119,7 @@ const AvailabilityPage = async () => {
           </CardFooter>
         </form>
       </Card>
-    </div>
+    </PageContainer>
   );
 };
 

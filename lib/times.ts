@@ -149,3 +149,24 @@ export function generateTimeSlots(
 
 /** Default 30-minute slots (`00:00` → `23:30`). Backs the dashboard availability UI. */
 export const times = generateTimeSlots(30);
+
+// ─── Day-index helper ────────────────────────────────────────────────────────
+/**
+ * Convert a JavaScript-style `Date.getDay()` value (0 = Sunday, 1 = Monday,
+ * …, 6 = Saturday) to the index into {@link DAYS_OF_WEEK} (0 = Monday,
+ * 1 = Tuesday, …, 6 = Sunday).
+ *
+ *   getDay=0 (Sunday)   → 6
+ *   getDay=1 (Monday)   → 0
+ *   getDay=2 (Tuesday)  → 1
+ *   …
+ *   getDay=6 (Saturday) → 5
+ *
+ * Used by the booking-page calendar
+ * (`components/calender/RenderCalendar.tsx`) to look up
+ * `daysofWeek[idx].isActive`. Lives next to the rest of the date helpers
+ * because it's strictly a calendar-day conversion — no `date-fns` use.
+ */
+export function jsDayToAvailabilityIndex(jsDay: number): number {
+  return jsDay === 0 ? 6 : jsDay - 1;
+}

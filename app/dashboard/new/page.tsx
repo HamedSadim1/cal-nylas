@@ -4,14 +4,9 @@ import { CreateEventTypeAction } from "@/lib/actions/action";
 import { SubmitButton } from "@/components/SubmitButton";
 import { eventTypeSchema } from "@/lib/validations";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import { IconCardHeader } from "@/components/IconCardHeader";
+import { PageContainer } from "@/components/PageContainer";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -59,7 +54,7 @@ const CreateNewEvent = () => {
     useState<Platform>(DEFAULT_PLATFORM);
 
   return (
-    <div className="w-full max-w-xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
+    <PageContainer>
       {/* Breadcrumb */}
       <Link
         href={ROUTES.DASHBOARD}
@@ -70,17 +65,11 @@ const CreateNewEvent = () => {
       </Link>
 
       <Card className="border-border/60 shadow-lg">
-        <CardHeader className="text-center pb-2">
-          <div className="mx-auto mb-4 size-12 rounded-xl bg-primary/10 flex items-center justify-center ring-1 ring-primary/20">
-            <CalendarPlus className="size-6 text-primary" />
-          </div>
-          <CardTitle className="text-2xl font-bold tracking-tight">
-            Create event type
-          </CardTitle>
-          <CardDescription>
-            Set up a new appointment type for people to book time with you
-          </CardDescription>
-        </CardHeader>
+        <IconCardHeader
+          icon={CalendarPlus}
+          title="Create event type"
+          description="Set up a new appointment type for people to book time with you"
+        />
 
         <form noValidate id={form.id} onSubmit={form.onSubmit} action={action}>
           <CardContent className="grid gap-y-5 pt-2">
@@ -213,7 +202,7 @@ const CreateNewEvent = () => {
           </CardFooter>
         </form>
       </Card>
-    </div>
+    </PageContainer>
   );
 };
 

@@ -10,6 +10,7 @@ import {
   today,
   parseDate,
 } from "@internationalized/date";
+import { jsDayToAvailabilityIndex } from "@/lib/times";
 
 interface iAppProps {
   daysofWeek: { day: string; isActive: boolean }[];
@@ -75,12 +76,11 @@ export function RenderCalendar({ daysofWeek }: iAppProps) {
 
   // Check if a given date is unavailable based on the day of the week.
   const isDateUnavailable = (date: DateValue) => {
-    // Get the day of the week for the given date.
-    const dayOfWeek = date.toDate(getLocalTimeZone()).getDay();
-    // Adjust the index to match the daysofWeek array (0-indexed). if the day is Sunday, adjust the index to 6.
-    const adjustedIndex = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
-    // Return true if the corresponding day is inactive, otherwise false.
-    return !daysofWeek[adjustedIndex].isActive;
+    // Date.getDay() returns 0 = Sunday … 6 = Saturday; map that onto the
+    // 0 = Monday … 6 = Sunday ordering of `daysofWeek` via the SSOT helper
+    // in `lib/times.ts`.
+    const jsDay = date.toDate(getLocalTimeZone()).getDay();
+    return !daysofWeek[jsDayToAvailabilityIndex(jsDay)].isActive;
   };
 
   return (

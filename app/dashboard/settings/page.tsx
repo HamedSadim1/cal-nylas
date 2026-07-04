@@ -1,5 +1,6 @@
 import { SettingsForm } from "@/components/SettingsForm";
 import { requireUser } from "@/lib/auth";
+import { PageContainer } from "@/components/PageContainer";
 import { ROUTES } from "@/lib/constants";
 import prisma from "@/lib/db";
 import { notFound } from "next/navigation";
@@ -24,13 +25,13 @@ const SettingsPage = async () => {
   const data = await getData(session.user.id);
 
   return (
-    <div className="w-full max-w-xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
+    <PageContainer>
       <SettingsForm
         email={data.email}
         fullName={data.userName ?? ""}
         profileImage={data.image ?? ""}
       />
-    </div>
+    </PageContainer>
   );
 };
 

@@ -27,7 +27,7 @@ import {
 import { MenuActiveSwitcher } from "@/components/EventTypeSwitcher";
 import { CopyLinkMenuItem } from "@/components/CopyLinkMenuItem";
 import { requireUser } from "@/lib/auth";
-import { buildBookingUrl } from "@/lib/urls";
+import { buildBookingUrl, buildEventTypeUrl } from "@/lib/urls";
 
 type EventTypeRow = NonNullable<
   Awaited<ReturnType<typeof getData>>
@@ -97,11 +97,8 @@ const DashboardPage = async () => {
                 key={id}
                 className="group relative rounded-xl border border-border bg-card text-card-foreground shadow-sm hover:shadow-md hover:border-primary/20 transition-all duration-300 overflow-hidden"
               >
-                {/* Card top area */}
-                <Link
-                  href={`${ROUTES.DASHBOARD_EVENT}/${id}`}
-                  className="block p-5"
-                >
+                {/* Card top area */}{" "}
+                <Link href={buildEventTypeUrl(id)} className="block p-5">
                   <div className="flex items-start justify-between">
                     <div className="flex items-center gap-4">
                       <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 ring-1 ring-primary/20 group-hover:bg-primary/15 transition-colors">
@@ -139,10 +136,10 @@ const DashboardPage = async () => {
                             </Link>
                           </DropdownMenuItem>
                           <CopyLinkMenuItem
-                            meetingUrl={buildBookingUrl(data.userName, url)}
+                            meetingUrl={buildBookingUrl(data.userName!, url)}
                           />
                           <DropdownMenuItem asChild>
-                            <Link href={`${ROUTES.DASHBOARD_EVENT}/${id}`}>
+                            <Link href={buildEventTypeUrl(id)}>
                               <Pen className="mr-2 size-4" />
                               Edit
                             </Link>
@@ -153,7 +150,7 @@ const DashboardPage = async () => {
                           asChild
                           className="text-destructive focus:text-destructive"
                         >
-                          <Link href={`${ROUTES.DASHBOARD_EVENT}/${id}/delete`}>
+                          <Link href={buildEventTypeUrl(id, "delete")}>
                             <Trash2 className="mr-2 size-4" />
                             Delete
                           </Link>
@@ -162,7 +159,6 @@ const DashboardPage = async () => {
                     </DropdownMenu>
                   </div>
                 </Link>
-
                 {/* Card footer */}
                 <div className="flex items-center justify-between px-5 py-3 border-t border-border bg-muted/30">
                   <div className="flex items-center gap-2">
@@ -175,7 +171,7 @@ const DashboardPage = async () => {
                     </span>
                   </div>
                   <Button variant="ghost" size="sm" asChild>
-                    <Link href={`${ROUTES.DASHBOARD_EVENT}/${id}`}>
+                    <Link href={buildEventTypeUrl(id)}>
                       <Pen className="size-3.5 mr-1.5" />
                       Edit
                     </Link>
