@@ -1,6 +1,8 @@
-import { addMinutes, format, fromUnixTime, isAfter, isBefore } from "date-fns";
+import { format, fromUnixTime } from "date-fns";
 import {
+  BusyRange,
   DATE_FORMATS,
+  calculateFreeTimeSlots,
   getDayBounds,
   parseDateTime,
   toUnixSeconds,
@@ -11,7 +13,7 @@ import { nylas } from "../lib/nylas";
 import { requireNylasGrant } from "../lib/auth";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { NylasResponse, GetFreeBusyResponse, FreeBusyType } from "nylas";
+import { FreeBusyType } from "nylas";
 
 interface iappProps {
   selectedDate: Date;
@@ -66,67 +68,6 @@ async function getAvailability(selectedDate: Date, userName: string) {
 }
 
 /**
- * Calculates available time slots based on database availability and Nylas busy slots.
- *
- * @param dbAvailability - An object containing the start and end times of availability from the database.
- * @param nylasData - The response from Nylas API containing busy time slots.
- * @param date - The date for which to calculate the available time slots in "yyyy-MM-dd" format.
- * @param duration - The duration of each time slot in minutes.
- * @returns An array of available time slots formatted as "HH:mm".
- */
-function calculateAvailableTimeSlots(
-  dbAvailability: {
-    fromTime: string | undefined;
-    tillTime: string | undefined;
-  },
-  nylasData: NylasResponse<GetFreeBusyResponse[]>,
-  date: string,
-  duration: number,
-) {
-  const now = new Date(); // Get the current time
-
-  // Convert DB availability to Date objects
-  const availableFrom = parseDateTime(date, dbAvailability.fromTime as string);
-  const availableTill = parseDateTime(date, dbAvailability.tillTime as string);
-
-  // Extract busy slots from Nylas data.
-  // `getFreeBusy()` returns `NylasResponse<FreeBusy[]>` where each item is
-  // a `FreeBusy | FreeBusyError` union; only the `FreeBusy` arm exposes `timeSlots`.
-  // TypeScript narrows the union on the discriminator without us needing a cast.
-  const busySlots = nylasData.data
-    .filter((entry) => entry.object === FreeBusyType.FREE_BUSY)
-    .flatMap((entry) => entry.timeSlots)
-    .map((slot) => ({
-      start: fromUnixTime(slot.startTime),
-      end: fromUnixTime(slot.endTime),
-    }));
-  // Generate all possible 30-minute slots within the available time
-  const allSlots = [];
-  let currentSlot = availableFrom;
-  while (isBefore(currentSlot, availableTill)) {
-    allSlots.push(currentSlot);
-    currentSlot = addMinutes(currentSlot, duration);
-  }
-
-  // Filter out busy slots and slots before the current time
-  const freeSlots = allSlots.filter((slot) => {
-    const slotEnd = addMinutes(slot, duration);
-    return (
-      isAfter(slot, now) && // Ensure the slot is after the current time
-      !busySlots.some(
-        (busy: { start: Date; end: Date }) =>
-          (!isBefore(slot, busy.start) && isBefore(slot, busy.end)) ||
-          (isAfter(slotEnd, busy.start) && !isAfter(slotEnd, busy.end)) ||
-          (isBefore(slot, busy.start) && isAfter(slotEnd, busy.end)),
-      )
-    );
-  });
-
-  // Format the free slots
-  return freeSlots.map((slot) => format(slot, DATE_FORMATS.TIME_HOUR_MINUTE));
-}
-
-/**
  * Fetches and displays available time slots for a given date and user.
  *
  * @param {Object} props - The properties object.
@@ -153,11 +94,35 @@ export async function TimeSlots({
   // Format the selected date for display purposes
   const formattedDate = format(selectedDate, DATE_FORMATS.CALENDAR_DATE);
 
-  // Calculate available time slots based on DB availability and Nylas calendar data for the selected date
-  const availableSlots = calculateAvailableTimeSlots(
-    dbAvailability,
-    nylasCalendarData,
+  // The pure date-math (slot enumeration + busy overlap) lives in
+  // `calculateFreeTimeSlots` in `lib/times.ts`. Here we only transform
+  // the Nylas `NylasResponse<GetFreeBusyResponse[]>` shape into the
+  // SDK-agnostic `BusyRange[]` the helper expects.
+  const availableFrom = parseDateTime(
     formattedDate,
+    dbAvailability.fromTime as string,
+  );
+  const availableTill = parseDateTime(
+    formattedDate,
+    dbAvailability.tillTime as string,
+  );
+  // `nylasCalendarData` is already inferred as `NylasResponse<GetFreeBusyResponse[]>`
+  // from `nylas.calendars.getFreeBusy(...)`'s return-type chain; each
+  // `data[i]` is a `FreeBusy | FreeBusyError` union discriminated by
+  // `object`, so the .filter narrows the union on the discriminator without
+  // a cast.
+  const busyRanges: BusyRange[] = nylasCalendarData.data
+    .filter((entry) => entry.object === FreeBusyType.FREE_BUSY)
+    .flatMap((entry) => entry.timeSlots)
+    .map((slot) => ({
+      start: fromUnixTime(slot.startTime),
+      end: fromUnixTime(slot.endTime),
+    }));
+
+  const availableSlots = calculateFreeTimeSlots(
+    availableFrom,
+    availableTill,
+    busyRanges,
     meetingDuration,
   );
 

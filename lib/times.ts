@@ -1,4 +1,4 @@
-import { format, parse } from "date-fns";
+import { addMinutes, format, isAfter, isBefore, parse } from "date-fns";
 import { nlBE } from "date-fns/locale";
 import { LOCALE } from "./constants";
 
@@ -169,4 +169,98 @@ export const times = generateTimeSlots(30);
  */
 export function jsDayToAvailabilityIndex(jsDay: number): number {
   return jsDay === 0 ? 6 : jsDay - 1;
+}
+
+// ─── Free-slot calculation (extracted from components/TimeSlots.tsx) ────────
+
+/**
+ * A single busy interval fed into {@link calculateFreeTimeSlots}. Mirrors
+ * the shape of a `timeSlots[i]` entry from the Nylas free/busy response
+ * after the consumer has mapped Unix-second timestamps into `Date` objects.
+ *
+ * Lives in `lib/times.ts` (not in `components/TimeSlots.tsx`) so any future
+ * caller that needs the same overlap logic — e.g. a dashboard preview that
+ * shows the user's own free slots — can plug straight into the helper
+ * without dragging the Nylas SDK into its dependency graph.
+ */
+export interface BusyRange {
+  start: Date;
+  end: Date;
+}
+
+/**
+ * Enumerate the user-facing free time slots within an availability window,
+ * filtering against busy intervals and "now"-relative slots.
+ *
+ * Returns slot-START times formatted with {@link DATE_FORMATS.TIME_HOUR_MINUTE}
+ * ("HH:mm"). Extracted verbatim from the previous inline
+ * `calculateAvailableTimeSlots` in `components/TimeSlots.tsx`; the
+ * calculation itself is unchanged so existing behavior is preserved.
+ *
+ * Slot/busy overlap is detected by enumerating the three classical cases
+ * (slot-start inside busy, slot-end inside busy, busy entirely inside slot);
+ * see the references in `git log` for the boundary semantics. Kept verbatim
+ * rather than collapsed to the canonical `slotStart < busyEnd && slotEnd >
+ * busyStart` form so this refactor stays a pure extract with no logic drift.
+ *
+ * Responsibility split:
+ *  - The SDK-specific Nylas-data → `BusyRange[]` transformation stayed in
+ *    `components/TimeSlots.tsx` (which imports `nylas`), so `lib/times.ts`
+ *    stays free of `nylas` SDK coupling.
+ *  - This function is pure: every input is explicit, including `now` (defaults
+ *    to `new Date()` in production, can be injected for unit tests).
+ *
+ * @param availableFrom   - First possible slot start (inclusive).
+ * @param availableTill   - Last possible slot start (exclusive — the slot
+ *                          must START before this; it may still END after).
+ * @param busyRanges      - Intervals to exclude; any overlap disqualifies a
+ *                          candidate slot.
+ * @param durationMinutes - Length of each slot in minutes. Same constraint
+ *                          as {@link generateTimeSlots}: positive integer
+ *                          that evenly divides 60.
+ * @param now             - Injectable "current time" for testability.
+ * @returns Slot-start times as `"HH:mm"` strings, in the order they occur.
+ * @throws If `durationMinutes` violates the 60-divisibility rule.
+ */
+export function calculateFreeTimeSlots(
+  availableFrom: Date,
+  availableTill: Date,
+  busyRanges: BusyRange[],
+  durationMinutes: number,
+  now: Date = new Date(),
+): string[] {
+  if (
+    !Number.isInteger(durationMinutes) ||
+    durationMinutes <= 0 ||
+    60 % durationMinutes !== 0
+  ) {
+    throw new Error(
+      `calculateFreeTimeSlots: durationMinutes must be a positive integer that evenly divides 60 (got ${durationMinutes})`,
+    );
+  }
+
+  // Enumerate every candidate slot within the availability window.
+  const allSlots: Date[] = [];
+  let currentSlot = availableFrom;
+  while (isBefore(currentSlot, availableTill)) {
+    allSlots.push(currentSlot);
+    currentSlot = addMinutes(currentSlot, durationMinutes);
+  }
+
+  // Keep only slots that are (a) still in the future and (b) don't overlap
+  // any busy range. The three-clause overlap formula enumerates the cases
+  // (slot-start inside busy, slot-end inside busy, busy inside slot);
+  // intentional verbatim port — see function header for the rationale.
+  const freeSlots = allSlots.filter((slot) => {
+    const slotEnd = addMinutes(slot, durationMinutes);
+    if (!isAfter(slot, now)) return false;
+    return !busyRanges.some(
+      (busy) =>
+        (!isBefore(slot, busy.start) && isBefore(slot, busy.end)) ||
+        (isAfter(slotEnd, busy.start) && !isAfter(slotEnd, busy.end)) ||
+        (isBefore(slot, busy.start) && isAfter(slotEnd, busy.end)),
+    );
+  });
+
+  return freeSlots.map((slot) => format(slot, DATE_FORMATS.TIME_HOUR_MINUTE));
 }
