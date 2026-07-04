@@ -15,6 +15,31 @@ export function getFormString(formData: FormData, key: string): string {
 }
 
 /**
+ * Safely extract a finite numeric value from FormData, throwing if missing
+ * or non-numeric. Sibling of {@link getFormString} for parallel SSOT
+ * coverage — used wherever a server action consumes a number field
+ * (e.g. `meetingLength` in `createMeetingAction`). Catches:
+ *
+ *   - `formData.get(key)` returning `null` (unsubmitted form field).
+ *   - `Number("")`, `Number("abc")`, `Number(undefined)` → NaN.
+ *
+ * @param formData - The submitted FormData.
+ * @param key      - The form field key.
+ * @returns The parsed number.
+ * @throws If the value is missing or not a finite number.
+ */
+export function getFormNumber(formData: FormData, key: string): number {
+  const value = formData.get(key);
+  const num = Number(value);
+  if (!Number.isFinite(num)) {
+    throw new Error(
+      `Form field "${key}" is not a valid number (got ${JSON.stringify(value)})`,
+    );
+  }
+  return num;
+}
+
+/**
  * One row of the availability form, in the shape `updateAvailabilityAction`
  * feeds straight into a `prisma.availability.update({ where: { id }, data: {
  * isActive, fromTime, tillTime } })`.

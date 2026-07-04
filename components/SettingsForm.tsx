@@ -11,8 +11,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { IconInput } from "@/components/IconInput";
 import { useForm } from "@conform-to/react";
 import { parseWithZod } from "@conform-to/zod";
 import { SubmitButton } from "./SubmitButton";
@@ -64,16 +64,13 @@ export function SettingsForm({ fullName, email, profileImage }: iAppProps) {
           {/* Full Name */}
           <div className="grid gap-y-2">
             <Label className="text-sm font-medium">Full Name</Label>
-            <div className="relative">
-              <User className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
-              <Input
-                name={fields.fullName.name}
-                key={fields.fullName.key}
-                placeholder="Hamed Sadim"
-                defaultValue={fullName}
-                className="pl-9"
-              />
-            </div>
+            <IconInput
+              icon={User}
+              name={fields.fullName.name}
+              key={fields.fullName.key}
+              defaultValue={fullName}
+              placeholder="Hamed Sadim"
+            />
             {fields.fullName.errors && (
               <p className="text-destructive text-sm">
                 {fields.fullName.errors}
@@ -84,15 +81,13 @@ export function SettingsForm({ fullName, email, profileImage }: iAppProps) {
           {/* Email */}
           <div className="grid gap-y-2">
             <Label className="text-sm font-medium">Email</Label>
-            <div className="relative">
-              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
-              <Input
-                disabled
-                placeholder="hamed@example.com"
-                defaultValue={email}
-                className="pl-9 bg-muted/50"
-              />
-            </div>
+            <IconInput
+              icon={Mail}
+              disabled
+              defaultValue={email}
+              placeholder="hamed@example.com"
+              className="bg-muted/50"
+            />
           </div>
 
           {/* Profile Image */}

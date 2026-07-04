@@ -27,6 +27,7 @@ import {
 import { MenuActiveSwitcher } from "@/components/EventTypeSwitcher";
 import { CopyLinkMenuItem } from "@/components/CopyLinkMenuItem";
 import { requireUser } from "@/lib/auth";
+import { buildBookingUrl } from "@/lib/urls";
 
 type EventTypeRow = NonNullable<
   Awaited<ReturnType<typeof getData>>
@@ -138,7 +139,7 @@ const DashboardPage = async () => {
                             </Link>
                           </DropdownMenuItem>
                           <CopyLinkMenuItem
-                            meetingUrl={`${process.env.NEXT_PUBLIC_URL}/${data.userName}/${url}`}
+                            meetingUrl={buildBookingUrl(data.userName, url)}
                           />
                           <DropdownMenuItem asChild>
                             <Link href={`${ROUTES.DASHBOARD_EVENT}/${id}`}>

@@ -66,6 +66,41 @@ export const NYLAS_CONFERENCING_PROVIDER = "Google Meet" as const;
 // ─── Meeting Durations (minutes) ────────────────────────────────────────────────
 export const MEETING_DURATIONS = [15, 30, 45, 60] as const;
 
+/**
+ * Display labels for each entry in {@link MEETING_DURATIONS}. Solid hours
+ * read as `"1 hour"`; everything else uses the `"{n} minutes"` pattern.
+ * The keyed type is `(typeof MEETING_DURATIONS)[number]`, so adding a new
+ * duration to the array forces a matching label here at compile time — no
+ * more silent unmapped durations like `{duration === 60 ? ... : ...}`.
+ */
+export const MEETING_DURATION_LABELS: Record<
+  (typeof MEETING_DURATIONS)[number],
+  string
+> = {
+  15: "15 minutes",
+  30: "30 minutes",
+  45: "45 minutes",
+  60: "1 hour",
+};
+
+/**
+ * Pre-built `<Select>` options derived from
+ * {@link MEETING_DURATIONS} + {@link MEETING_DURATION_LABELS}. `value` is
+ * a string because Radix Select emits string-typed values; the label is
+ * the display string. Drop-in for `app/dashboard/new/page.tsx`:
+ *
+ *   {MEETING_DURATION_OPTIONS.map(({ label, value }) => (
+ *     <SelectItem key={value} value={value}>{label}</SelectItem>
+ *   ))}
+ */
+export const MEETING_DURATION_OPTIONS: ReadonlyArray<{
+  readonly label: string;
+  readonly value: string;
+}> = MEETING_DURATIONS.map((d) => ({
+  label: MEETING_DURATION_LABELS[d],
+  value: String(d),
+}));
+
 // ─── Validation Limits ──────────────────────────────────────────────────────────
 export const VALIDATION = {
   NAME_MIN: 3,

@@ -23,7 +23,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
 import { useForm } from "@conform-to/react";
 import { parseWithZod } from "@conform-to/zod";
 import Link from "next/link";
@@ -36,11 +35,12 @@ import {
   Globe,
   Video,
 } from "lucide-react";
+import { IconInput } from "@/components/IconInput";
 import {
   PLATFORM_OPTIONS,
   DEFAULT_PLATFORM,
   type Platform,
-  MEETING_DURATIONS,
+  MEETING_DURATION_OPTIONS,
   ROUTES,
   APP_URL,
 } from "@/lib/constants";
@@ -55,7 +55,8 @@ const CreateNewEvent = () => {
     shouldValidate: "onBlur",
     shouldRevalidate: "onInput",
   });
-  const [activePlatform, setActivePlatform] = useState<Platform>(DEFAULT_PLATFORM);
+  const [activePlatform, setActivePlatform] =
+    useState<Platform>(DEFAULT_PLATFORM);
 
   return (
     <div className="w-full max-w-xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -86,16 +87,13 @@ const CreateNewEvent = () => {
             {/* Title */}
             <div className="grid gap-y-2">
               <Label className="text-sm font-medium">Title</Label>
-              <div className="relative">
-                <FileText className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
-                <Input
-                  name={fields.title.name}
-                  key={fields.title.key}
-                  defaultValue={fields.title.initialValue}
-                  placeholder="30 min consultation"
-                  className="pl-9"
-                />
-              </div>
+              <IconInput
+                icon={FileText}
+                name={fields.title.name}
+                key={fields.title.key}
+                defaultValue={fields.title.initialValue}
+                placeholder="30 min consultation"
+              />
               {fields.title.errors && (
                 <p className="text-destructive text-sm">
                   {fields.title.errors}
@@ -128,16 +126,14 @@ const CreateNewEvent = () => {
             {/* Description */}
             <div className="grid gap-y-2">
               <Label className="text-sm font-medium">Description</Label>
-              <div className="relative">
-                <FileText className="absolute left-3 top-3 size-4 text-muted-foreground" />
-                <Textarea
-                  name={fields.description.name}
-                  key={fields.description.key}
-                  defaultValue={fields.description.initialValue}
-                  placeholder="A quick catch-up call to discuss your project needs"
-                  className="pl-9 min-h-20 resize-none"
-                />
-              </div>
+              <IconInput
+                as="textarea"
+                icon={FileText}
+                name={fields.description.name}
+                key={fields.description.key}
+                defaultValue={fields.description.initialValue}
+                placeholder="A quick catch-up call to discuss your project needs"
+              />
               {fields.description.errors && (
                 <p className="text-destructive text-sm">
                   {fields.description.errors}
@@ -160,9 +156,9 @@ const CreateNewEvent = () => {
                 <SelectContent>
                   <SelectGroup>
                     <SelectLabel>Duration</SelectLabel>
-                    {MEETING_DURATIONS.map((duration) => (
-                      <SelectItem key={duration} value={String(duration)}>
-                        {duration === 60 ? "1 hour" : `${duration} minutes`}
+                    {MEETING_DURATION_OPTIONS.map(({ label, value }) => (
+                      <SelectItem key={value} value={value}>
+                        {label}
                       </SelectItem>
                     ))}
                   </SelectGroup>

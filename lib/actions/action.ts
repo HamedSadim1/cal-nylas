@@ -8,7 +8,7 @@ import {
   EventTypeServerSchema,
   onboardingSchema,
 } from "../validations";
-import { getFormString, parseAvailabilityForm } from "../utils";
+import { getFormNumber, getFormString, parseAvailabilityForm } from "../utils";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { nylas } from "../nylas";
@@ -228,7 +228,7 @@ export async function createMeetingAction(formData: FormData) {
   });
 
   const formTime = getFormString(formData, "fromTime");
-  const meetingLength = Number(formData.get("meetingLength"));
+  const meetingLength = getFormNumber(formData, "meetingLength");
   const eventDate = getFormString(formData, "eventDate");
 
   const startDateTime = parseDateTime(eventDate, formTime);

@@ -9,7 +9,7 @@ import { Separator } from "@/components/ui/separator";
 import prisma from "@/lib/db";
 import { BookMarked, CalendarX2, Clock } from "lucide-react";
 import { formatLongDate } from "@/lib/times";
-import Image from "next/image";
+import { UserAvatar } from "@/components/UserAvatar";
 import { notFound } from "next/navigation";
 import React from "react";
 
@@ -97,21 +97,10 @@ const BookingPage = async ({ params, searchParams }: BookingPageProps) => {
         <Card className="max-w-150">
           <CardContent className="p-5 grid md:grid-cols-[1fr,auto,1fr] gap-4">
             <div>
-              {eventType.user.image ? (
-                <Image
-                  src={eventType.user.image}
-                  alt={`${eventType.user.name}'s profile picture`}
-                  className="size-9 rounded-full"
-                  width={30}
-                  height={30}
-                />
-              ) : (
-                <div className="size-9 rounded-full bg-primary/10 flex items-center justify-center">
-                  <span className="text-xs font-medium text-primary">
-                    {(eventType.user.name || "?").charAt(0)}
-                  </span>
-                </div>
-              )}
+              <UserAvatar
+                name={eventType.user.name}
+                imageUrl={eventType.user.image}
+              />
               <p className="text-sm font-medium text-muted-foreground mt-1">
                 {eventType.user.name}
               </p>
@@ -177,21 +166,10 @@ const BookingPage = async ({ params, searchParams }: BookingPageProps) => {
         <Card className="w-full max-w-250 mx-auto">
           <CardContent className="p-5 md:grid md:grid-cols-[1fr,auto,1fr,auto,1fr] md:gap-4">
             <div>
-              {eventType.user.image ? (
-                <Image
-                  src={eventType.user.image}
-                  alt={`${eventType.user.name}'s profile picture`}
-                  className="size-9 rounded-full"
-                  width={30}
-                  height={30}
-                />
-              ) : (
-                <div className="size-9 rounded-full bg-primary/10 flex items-center justify-center">
-                  <span className="text-xs font-medium text-primary">
-                    {(eventType.user.name || "?").charAt(0)}
-                  </span>
-                </div>
-              )}
+              <UserAvatar
+                name={eventType.user.name}
+                imageUrl={eventType.user.image}
+              />
               <p className="text-sm font-medium text-muted-foreground mt-1">
                 {eventType.user.name}
               </p>
