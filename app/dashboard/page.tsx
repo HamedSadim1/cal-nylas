@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { Plus } from "lucide-react";
 import React from "react";
+import { Prisma } from "@prisma/client";
 
 import { Button } from "@/components/ui/button";
 import { DashboardPageHeader } from "@/components/DashboardPageHeader";
@@ -10,6 +11,24 @@ import { EventTypeCard } from "@/components/EventTypeCard";
 import { requireUser } from "@/lib/auth";
 import { ROUTES } from "@/lib/constants";
 import prisma from "@/lib/db";
+
+// SSOT for the dashboard event-type projection. With Prisma's `select`
+// inlining the chosen fields through `Awaited<ReturnType<…>>` is
+// sometimes brittle (the chained `.EventType.map(…)` callback in
+// particular loses the inner shape under Next.js 16 + Turbopack's
+// stricter contextual-typing). The `Prisma.EventTypeGetPayload<…>`
+// helper re-derives the exact row type from the schema + select, so
+// the explicit annotation below is robust regardless of how the
+// surrounding promise return type is inferred.
+type DashboardEventType = Prisma.EventTypeGetPayload<{
+  select: {
+    id: true;
+    active: true;
+    title: true;
+    url: true;
+    duration: true;
+  };
+}>;
 
 async function getData(id: string) {
   const data = await prisma.user.findUnique({
@@ -69,7 +88,7 @@ const DashboardPage = async () => {
         />
       ) : (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {EventType.map((eventType) => (
+          {EventType.map((eventType: DashboardEventType) => (
             <EventTypeCard
               key={eventType.id}
               eventType={eventType}
