@@ -1,37 +1,15 @@
-import { Button } from "@/components/ui/button";
-import Link from "next/link";
 import { notFound } from "next/navigation";
+import Link from "next/link";
+import { Plus } from "lucide-react";
 import React from "react";
-import prisma from "@/lib/db";
-import {
-  ExternalLink,
-  MoreHorizontal,
-  Pen,
-  Plus,
-  Trash2,
-  Users2,
-  Clock,
-} from "lucide-react";
 
+import { Button } from "@/components/ui/button";
+import { DashboardPageHeader } from "@/components/DashboardPageHeader";
 import { EmptyState } from "@/components/EmptyState";
-import { ROUTES } from "@/lib/constants";
-
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { MenuActiveSwitcher } from "@/components/EventTypeSwitcher";
-import { CopyLinkMenuItem } from "@/components/CopyLinkMenuItem";
+import { EventTypeCard } from "@/components/EventTypeCard";
 import { requireUser } from "@/lib/auth";
-import { buildBookingUrl, buildEventTypeUrl } from "@/lib/urls";
-
-type EventTypeRow = NonNullable<
-  Awaited<ReturnType<typeof getData>>
->["EventType"][number];
+import { ROUTES } from "@/lib/constants";
+import prisma from "@/lib/db";
 
 async function getData(id: string) {
   const data = await prisma.user.findUnique({
@@ -59,28 +37,30 @@ const DashboardPage = async () => {
   const session = await requireUser({ redirectTo: ROUTES.HOME });
   const data = await getData(session.user.id);
 
+  // Hoist userName to narrow Prisma's `string | null` projection into a
+  // plain `string` for the rest of the page. The dashboard layout already
+  // redirects users without a `userName` away to onboarding, but TS can't
+  // see that — the early-return turns the rest of the page into a
+  // single-source-of-truth for the non-null assertion.
+  const { userName, EventType } = data;
+  if (!userName) return notFound();
+
   return (
     <>
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-2">
-        <div>
-          <h1 className="text-2xl md:text-3xl font-bold tracking-tight">
-            Event Types
-          </h1>
-          <p className="text-muted-foreground mt-1">
-            Create and manage your event types for scheduling
-          </p>
-        </div>
-        <Button asChild size="lg" className="gap-2 shrink-0">
-          <Link href={ROUTES.DASHBOARD_NEW}>
-            <Plus className="size-5" />
-            Create New Event
-          </Link>
-        </Button>
-      </div>
+      <DashboardPageHeader
+        title="Event Types"
+        description="Create and manage your event types for scheduling"
+        cta={
+          <Button asChild size="lg" className="gap-2 shrink-0">
+            <Link href={ROUTES.DASHBOARD_NEW}>
+              <Plus className="size-5" />
+              Create New Event
+            </Link>
+          </Button>
+        }
+      />
 
-      {/* Content */}
-      {data.EventType.length === 0 ? (
+      {EventType.length === 0 ? (
         <EmptyState
           title="No event types yet"
           description="Create your first event type to start sharing your availability and let people book time with you."
@@ -89,97 +69,13 @@ const DashboardPage = async () => {
         />
       ) : (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {data.EventType.map((eventType: EventTypeRow) => {
-            const { id, active, duration, title, url } = eventType;
-
-            return (
-              <div
-                key={id}
-                className="group relative rounded-xl border border-border bg-card text-card-foreground shadow-sm hover:shadow-md hover:border-primary/20 transition-all duration-300 overflow-hidden"
-              >
-                {/* Card top area */}{" "}
-                <Link href={buildEventTypeUrl(id)} className="block p-5">
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-center gap-4">
-                      <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 ring-1 ring-primary/20 group-hover:bg-primary/15 transition-colors">
-                        <Users2 className="size-5 text-primary" />
-                      </div>
-                      <div className="min-w-0">
-                        <h3 className="font-semibold text-lg leading-tight truncate">
-                          {title}
-                        </h3>
-                        <div className="flex items-center gap-1.5 mt-1 text-sm text-muted-foreground">
-                          <Clock className="size-3.5" />
-                          <span>{duration} min</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Dropdown menu */}
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="shrink-0 opacity-0 group-hover:opacity-100 transition-opacity -mr-2"
-                          onClick={(e) => e.preventDefault()}
-                        >
-                          <MoreHorizontal className="size-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="w-48">
-                        <DropdownMenuGroup>
-                          <DropdownMenuItem asChild>
-                            <Link href={`/${data.userName}/${url}`}>
-                              <ExternalLink className="mr-2 size-4" />
-                              Preview
-                            </Link>
-                          </DropdownMenuItem>
-                          <CopyLinkMenuItem
-                            meetingUrl={buildBookingUrl(data.userName!, url)}
-                          />
-                          <DropdownMenuItem asChild>
-                            <Link href={buildEventTypeUrl(id)}>
-                              <Pen className="mr-2 size-4" />
-                              Edit
-                            </Link>
-                          </DropdownMenuItem>
-                        </DropdownMenuGroup>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem
-                          asChild
-                          className="text-destructive focus:text-destructive"
-                        >
-                          <Link href={buildEventTypeUrl(id, "delete")}>
-                            <Trash2 className="mr-2 size-4" />
-                            Delete
-                          </Link>
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
-                </Link>
-                {/* Card footer */}
-                <div className="flex items-center justify-between px-5 py-3 border-t border-border bg-muted/30">
-                  <div className="flex items-center gap-2">
-                    <MenuActiveSwitcher
-                      initialChecked={active}
-                      eventTypeId={id}
-                    />
-                    <span className="text-xs text-muted-foreground">
-                      {active ? "Active" : "Inactive"}
-                    </span>
-                  </div>
-                  <Button variant="ghost" size="sm" asChild>
-                    <Link href={buildEventTypeUrl(id)}>
-                      <Pen className="size-3.5 mr-1.5" />
-                      Edit
-                    </Link>
-                  </Button>
-                </div>
-              </div>
-            );
-          })}
+          {EventType.map((eventType) => (
+            <EventTypeCard
+              key={eventType.id}
+              eventType={eventType}
+              userName={userName}
+            />
+          ))}
         </div>
       )}
     </>
