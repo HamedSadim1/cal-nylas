@@ -1,4 +1,5 @@
 import { createMeetingAction } from "@/lib/actions/action";
+import { FORM_FIELDS } from "@/lib/constants";
 import { RenderCalendar } from "@/components/calender/RenderCalendar";
 import { SubmitButton } from "@/components/SubmitButton";
 import { TimeSlots } from "@/components/TimeSlots";
@@ -139,13 +140,13 @@ const BookingPage = async ({ params, searchParams }: BookingPageProps) => {
               className="flex flex-col gap-y-4"
               action={createMeetingAction}
             >
-              <input type="hidden" name="eventTypeId" value={eventType.id} />
+              <input type="hidden" name={FORM_FIELDS.EVENT_TYPE_ID} value={eventType.id} />
               <input type="hidden" name="username" value={userName} />
-              <input type="hidden" name="fromTime" value={time} />
-              <input type="hidden" name="eventDate" value={date} />
+              <input type="hidden" name={FORM_FIELDS.FROM_TIME} value={time} />
+              <input type="hidden" name={FORM_FIELDS.EVENT_DATE} value={date} />
               <input
                 type="hidden"
-                name="meetingLength"
+                name={FORM_FIELDS.MEETING_LENGTH}
                 value={eventType.duration}
               />
               <div className="flex flex-col gap-y-1">

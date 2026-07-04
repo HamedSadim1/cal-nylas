@@ -1,10 +1,11 @@
 import Nylas from "nylas";
+import { ROUTES } from "./constants";
 
 export const nylasConfig = {
   // OAuth-side configuration (consumed by app/api/auth and app/api/oauth/exchange).
   clientId: process.env.NYLAS_CLIENT_ID,
   callbackUri:
-    (process.env.NEXT_PUBLIC_URL ?? "") + "/api/oauth/exchange",
+    (process.env.NEXT_PUBLIC_URL ?? "") + ROUTES.API_OAUTH_EXCHANGE,
   // Server-side SDK configuration (consumed by the Nylas client below).
   apiKey: process.env.NYLAS_API_SECRET_KEY,
   apiUri: process.env.NYLAS_API_URL,

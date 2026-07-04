@@ -17,6 +17,7 @@ import {
   DAYS_OF_WEEK,
   DEFAULT_AVAILABILITY,
   NYLAS_CONFERENCING_PROVIDER,
+  FORM_FIELDS,
 } from "../constants";
 import { parseDateTime, toUnixSeconds } from "../times";
 
@@ -215,21 +216,19 @@ export async function createMeetingAction(formData: FormData) {
     throw new Error("User not found");
   }
 
-  const { grantId, grantEmail } = requireNylasGrant(getUserData);
+  const { grantId, grantEmail } = requireNylasGrant(getUserData);    const eventTypeData = await prisma.eventType.findUnique({
+      where: {
+        id: getFormString(formData, FORM_FIELDS.EVENT_TYPE_ID),
+      },
+      select: {
+        title: true,
+        description: true,
+      },
+    });
 
-  const eventTypeData = await prisma.eventType.findUnique({
-    where: {
-      id: getFormString(formData, "eventTypeId"),
-    },
-    select: {
-      title: true,
-      description: true,
-    },
-  });
-
-  const formTime = getFormString(formData, "fromTime");
-  const meetingLength = getFormNumber(formData, "meetingLength");
-  const eventDate = getFormString(formData, "eventDate");
+    const formTime = getFormString(formData, FORM_FIELDS.FROM_TIME);
+    const meetingLength = getFormNumber(formData, FORM_FIELDS.MEETING_LENGTH);
+    const eventDate = getFormString(formData, FORM_FIELDS.EVENT_DATE);
 
   const startDateTime = parseDateTime(eventDate, formTime);
 

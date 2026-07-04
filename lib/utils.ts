@@ -1,5 +1,6 @@
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
+import { FORM_FIELDS } from "./constants";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -57,15 +58,15 @@ export interface AvailabilityFormRow {
  *
  * Each row in `app/dashboard/availability/page.tsx` emits four inputs keyed
  * to its database id:
- *   - hidden  `id-${id}`
- *   - Switch  `isActive-${id}`   (browser submits value `"on"` when active)
- *   - Select  `fromTime-${id}`   (`"HH:mm"`)
- *   - Select  `tillTime-${id}`   (`"HH:mm"`)
+ *   - hidden `` `${FORM_FIELDS.ID}-${id}` ``
+ *   - Switch `` `${FORM_FIELDS.IS_ACTIVE}-${id}` ``   (browser submits value `"on"` when active)
+ *   - Select `` `${FORM_FIELDS.FROM_TIME}-${id}` ``   (`"HH:mm"`)
+ *   - Select `` `${FORM_FIELDS.TILL_TIME}-${id}` ``   (`"HH:mm"`)
  *
  * The four keys share the same suffix so a single flat FormData carries all
- * rows, and the prefix `id-` is the marker that delimits rows.
+ * rows, and the `` `${FORM_FIELDS.ID}-` `` prefix is the marker that delimits rows.
  *
- * Rows whose `fromTime-${id}` / `tillTime-${id}` fields are absent are
+ * Rows whose `` `${FORM_FIELDS.FROM_TIME}-${id}` `` / `` `${FORM_FIELDS.TILL_TIME}-${id}` `` fields are absent are
  * silently skipped. That happens when `item.isActive` is `false` at SSR time
  * (the Selects are conditionally rendered and not in the DOM), preventing
  * the previous latent bug where the old inline `String(rawData[...])`
@@ -83,12 +84,13 @@ export function parseAvailabilityForm(
     string,
     FormDataEntryValue
   >;
+  const idPrefix = `${FORM_FIELDS.ID}-`;
   return Object.keys(raw)
-    .filter((key) => key.startsWith("id-"))
+    .filter((key) => key.startsWith(idPrefix))
     .map<AvailabilityFormRow | null>((key) => {
-      const id = key.slice("id-".length);
-      const fromTime = raw[`fromTime-${id}`];
-      const tillTime = raw[`tillTime-${id}`];
+      const id = key.slice(idPrefix.length);
+      const fromTime = raw[`${FORM_FIELDS.FROM_TIME}-${id}`];
+      const tillTime = raw[`${FORM_FIELDS.TILL_TIME}-${id}`];
       // Rows where the Selects weren't rendered (item.isActive === false at
       // SSR) contribute no time fields — drop them so we don't write junk to
       // the database.
@@ -97,7 +99,7 @@ export function parseAvailabilityForm(
       }
       return {
         id,
-        isActive: raw[`isActive-${id}`] === "on",
+        isActive: raw[`${FORM_FIELDS.IS_ACTIVE}-${id}`] === "on",
         fromTime,
         tillTime,
       };

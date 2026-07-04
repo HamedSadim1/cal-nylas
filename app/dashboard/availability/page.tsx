@@ -17,7 +17,7 @@ import { notFound } from "next/navigation";
 import React from "react";
 import { updateAvailabilityAction } from "@/lib/actions/action";
 import { requireUser } from "@/lib/auth";
-import { ROUTES } from "@/lib/constants";
+import { FORM_FIELDS, ROUTES } from "@/lib/constants";
 import { CalendarCheck, Clock } from "lucide-react";
 
 type AvailabilityRow = Awaited<ReturnType<typeof getData>>[number];
@@ -51,10 +51,10 @@ const AvailabilityPage = async () => {
                 key={item.id}
                 className="flex flex-col sm:flex-row sm:items-center gap-3 p-3 rounded-lg border border-border/60 bg-muted/20 hover:bg-muted/30 transition-colors"
               >
-                <input type="hidden" name={`id-${item.id}`} value={item.id} />
+                <input type="hidden" name={`${FORM_FIELDS.ID}-${item.id}`} value={item.id} />
                 <div className="flex items-center gap-3 min-w-30">
                   <Switch
-                    name={`isActive-${item.id}`}
+                    name={`${FORM_FIELDS.IS_ACTIVE}-${item.id}`}
                     defaultChecked={item.isActive}
                   />
                   <span
@@ -70,7 +70,7 @@ const AvailabilityPage = async () => {
                 {item.isActive ? (
                   <div className="flex items-center gap-2 flex-1">
                     <Select
-                      name={`fromTime-${item.id}`}
+                      name={`${FORM_FIELDS.FROM_TIME}-${item.id}`}
                       defaultValue={item.fromTime}
                     >
                       <SelectTrigger className="w-full">
@@ -91,7 +91,7 @@ const AvailabilityPage = async () => {
                       to
                     </span>
                     <Select
-                      name={`tillTime-${item.id}`}
+                      name={`${FORM_FIELDS.TILL_TIME}-${item.id}`}
                       defaultValue={item.tillTime}
                     >
                       <SelectTrigger className="w-full">

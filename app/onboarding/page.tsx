@@ -43,7 +43,7 @@ const OnboardingPage = () => {
       {/* Top bar */}
       <header className="sticky top-0 z-40 bg-background/80 backdrop-blur-xl border-b border-border">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2.5 group">
+          <Link href={ROUTES.HOME} className="flex items-center gap-2.5 group">
             <div className="relative">
               <div className="absolute inset-0 rounded-lg bg-primary/20 blur-md opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
               <Image

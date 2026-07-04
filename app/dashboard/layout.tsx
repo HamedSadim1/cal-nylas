@@ -27,7 +27,11 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { Toaster } from "@/components/ui/sonner";
 import { signOut } from "@/auth";
 import prisma from "@/lib/db";
-import { ROUTES, APP_BRAND_SHORT } from "@/lib/constants";
+import {
+  ROUTES,
+  APP_BRAND_SHORT,
+  AVATAR_FALLBACK_INITIAL,
+} from "@/lib/constants";
 import { requireUser } from "@/lib/auth";
 
 async function getData(userId: string) {
@@ -58,7 +62,7 @@ export default async function DashboardLayout({
         <aside className="hidden md:flex flex-col border-r border-border/50 bg-background/70 backdrop-blur-xl">
           {/* Logo */}
           <div className="flex h-14 items-center gap-3 px-6 border-b border-border/50 lg:h-15">
-            <Link href="/" className="flex items-center gap-2.5 group">
+            <Link href={ROUTES.HOME} className="flex items-center gap-2.5 group">
               <div className="relative">
                 <div className="absolute inset-0 rounded-lg bg-primary/20 blur-md opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                 <Image
@@ -92,7 +96,7 @@ export default async function DashboardLayout({
               ) : (
                 <div className="size-8 rounded-full bg-primary/10 ring-2 ring-border flex items-center justify-center">
                   <span className="text-xs font-medium text-primary">
-                    {(session.user.name || data.userName || "?").charAt(0)}
+                    {(session.user.name || data.userName || AVATAR_FALLBACK_INITIAL).charAt(0)}
                   </span>
                 </div>
               )}
@@ -169,7 +173,7 @@ export default async function DashboardLayout({
                     ) : (
                       <div className="size-7 rounded-full bg-primary/10 ring-1 ring-border flex items-center justify-center">
                         <span className="text-[10px] font-medium text-primary">
-                          {(session.user.name || data.userName || "?").charAt(
+                          {(session.user.name || data.userName || AVATAR_FALLBACK_INITIAL).charAt(
                             0,
                           )}
                         </span>

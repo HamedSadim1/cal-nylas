@@ -1,5 +1,6 @@
 import Image from "next/image";
 
+import { AVATAR_FALLBACK_INITIAL } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 
 /**
@@ -58,7 +59,7 @@ export function UserAvatar({
       style={{ width: size, height: size }}
     >
       <span className="text-xs font-medium text-primary">
-        {(name || "?").charAt(0)}
+        {(name || AVATAR_FALLBACK_INITIAL).charAt(0)}
       </span>
     </div>
   );

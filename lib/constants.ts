@@ -132,3 +132,40 @@ export const GRANT_ID_FEATURE_TEXTS = [
   "Auto timezone conversion",
   "Google Meet integration",
 ] as const;
+
+// ─── Avatar ─────────────────────────────────────────────────────────────────────
+/**
+ * Display-string used when the user-avatar circle has neither a usable
+ * profile image nor a real `name`/`userName` to render an initial from.
+ * Picked because `?` reads as a visual placeholder without colliding with
+ * any letter/digit a real username might begin with. Consumed by the
+ * sidebar + header avatar bubbles in `app/dashboard/layout.tsx`.
+ */
+export const AVATAR_FALLBACK_INITIAL = "?" as const;
+
+// ─── Form Field Names ───────────────────────────────────────────────────────────
+/**
+ * DOM-name surface for `<input name>` and `FormData.get(key)` keys — single
+ * source of truth so a future rename (e.g. `fromTime` → `startTime`) is a
+ * one-file edit instead of a multi-call-site swap.
+ *
+ * Composite ids (per-row selectors like `fromTime-${id}`) compose these via
+ * template literals at the call site — see {@link parseAvailabilityForm}
+ * in `lib/utils.ts` for the canonical parser that uses these.
+ *
+ * Intentionally EXCLUDES the fully-generic field names (`name`, `email`,
+ * `username`): those names are too common across React/HTML/Conform to
+ * centralize without colliding with unrelated prop usage; the few call
+ * sites that read them from FormData stay explicit `"…"` literals.
+ */
+export const FORM_FIELDS = {
+  ID: "id",
+  IS_ACTIVE: "isActive",
+  FROM_TIME: "fromTime",
+  TILL_TIME: "tillTime",
+  EVENT_TYPE_ID: "eventTypeId",
+  MEETING_LENGTH: "meetingLength",
+  EVENT_DATE: "eventDate",
+} as const;
+
+export type FormFieldName = (typeof FORM_FIELDS)[keyof typeof FORM_FIELDS];
