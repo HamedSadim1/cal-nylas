@@ -2,21 +2,14 @@
 
 import { signIn } from "@/auth";
 
-/**
- * OAuth providers supported by `signInWithProvider`.
- *
- * SYNCHRONIZATION CONTRACT: this list MUST stay in sync with the
- * `providers[]` array in the root `auth.ts` next-auth config. There is no
- * compile-time check tying the two together (next-auth's `Provider[]` type
- * is per-provider-instance, not a string-union); extending providers means
- * a one-line addition here AND a matching provider entry in `auth.ts`.
- *
- * Mismatch = `signInWithProvider("newprovider")` typechecks here but
- * throws at next-auth's runtime boundary. Reviewers should flag any diff
- * to either side as a dual-file change.
- */
-export const AUTH_PROVIDERS = ["google", "github"] as const;
-export type AuthProvider = (typeof AUTH_PROVIDERS)[number];
+// NOTE: a `"use server"` file can only export async functions — the bundler
+// rejects any plain-object / type-only exports with
+// `A "use server" file can only export async functions, found object.`
+// That excludes a typed-but-exported `AUTH_PROVIDERS = [...] as const`
+// registry here, even though its only accessor is the parameter type
+// just below. The provider list stays inline as a literal-union on
+// `signInWithProvider`'s parameter — keep both in sync with `auth.ts`'s
+// `providers[]` (see the SYNC note in the JSDoc).
 
 /**
  * Sign the user in with the given OAuth provider. Single entry-point that
@@ -24,13 +17,20 @@ export type AuthProvider = (typeof AUTH_PROVIDERS)[number];
  * (`signInGoogle` + `signInGithub`) that previously duplicated the
  * `signIn(provider)` call verbatim.
  *
- * @param provider - one of {@link AUTH_PROVIDERS}.
+ * SYNCHRONIZATION CONTRACT: the `"google" | "github"` union MUST stay in
+ * sync with the `providers[]` array in the root `auth.ts` next-auth config.
+ * There is no compile-time check tying the two together (next-auth's
+ * `Provider[]` type is per-provider-instance, not a string-union);
+ * extending providers means a one-line addition to BOTH this union AND
+ * the matching provider entry in `auth.ts`.
+ *
+ * @param provider - one of the OAuth provider ids configured in `auth.ts`.
  * @throws Re-throws whatever next-auth's `signIn` throws (e.g. on OAuth
  *         rejection by the provider) — the call site decides whether to
  *         catch or let it propagate.
  */
 export async function signInWithProvider(
-  provider: AuthProvider,
+  provider: "google" | "github",
 ): Promise<void> {
   await signIn(provider);
 }
