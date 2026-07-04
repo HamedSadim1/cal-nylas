@@ -1,11 +1,10 @@
+import { addMinutes, format, fromUnixTime, isAfter, isBefore } from "date-fns";
 import {
-  addMinutes,
-  format,
-  fromUnixTime,
-  isAfter,
-  isBefore,
-  parse,
-} from "date-fns";
+  DATE_FORMATS,
+  getDayBounds,
+  parseDateTime,
+  toUnixSeconds,
+} from "../lib/times";
 import prisma from "../lib/db";
 import { Prisma } from "@prisma/client";
 import { nylas } from "../lib/nylas";
@@ -23,15 +22,10 @@ interface iappProps {
 async function getAvailability(selectedDate: Date, userName: string) {
   console.log("🚀 ~ getAvailability ~ userName:", userName);
   // Get the current day of the week
-  const currentDay = format(selectedDate, "EEEE");
+  const currentDay = format(selectedDate, DATE_FORMATS.WEEKDAY_LONG);
 
   // Set the start and end of the day
-  const startOfDay = new Date(selectedDate);
-  // Set the time to 00:00:00
-  startOfDay.setHours(0, 0, 0, 0);
-  // end of the day is 23:59:59
-  const endOfDay = new Date(selectedDate);
-  endOfDay.setHours(23, 59, 59, 999);
+  const { start: startOfDay, end: endOfDay } = getDayBounds(selectedDate);
 
   // Get the availability from the database for the selected day and user
   const data = await prisma.availability.findFirst({
@@ -60,9 +54,9 @@ async function getAvailability(selectedDate: Date, userName: string) {
     identifier: grantId,
     requestBody: {
       // Convert the start and end of the day to Unix timestamps
-      startTime: Math.floor(startOfDay.getTime() / 1000),
+      startTime: toUnixSeconds(startOfDay),
       // Convert the end of the day to a Unix timestamp
-      endTime: Math.floor(endOfDay.getTime() / 1000),
+      endTime: toUnixSeconds(endOfDay),
       // Specify the user's email for the free/busy data
       emails: [grantEmail],
     },
@@ -92,16 +86,8 @@ function calculateAvailableTimeSlots(
   const now = new Date(); // Get the current time
 
   // Convert DB availability to Date objects
-  const availableFrom = parse(
-    `${date} ${dbAvailability.fromTime}`,
-    "yyyy-MM-dd HH:mm",
-    new Date(),
-  );
-  const availableTill = parse(
-    `${date} ${dbAvailability.tillTime}`,
-    "yyyy-MM-dd HH:mm",
-    new Date(),
-  );
+  const availableFrom = parseDateTime(date, dbAvailability.fromTime as string);
+  const availableTill = parseDateTime(date, dbAvailability.tillTime as string);
 
   // Extract busy slots from Nylas data.
   // `getFreeBusy()` returns `NylasResponse<FreeBusy[]>` where each item is
@@ -137,7 +123,7 @@ function calculateAvailableTimeSlots(
   });
 
   // Format the free slots
-  return freeSlots.map((slot) => format(slot, "HH:mm"));
+  return freeSlots.map((slot) => format(slot, DATE_FORMATS.TIME_HOUR_MINUTE));
 }
 
 /**
@@ -165,7 +151,7 @@ export async function TimeSlots({
   const dbAvailability = { fromTime: data?.fromTime, tillTime: data?.tillTime };
 
   // Format the selected date for display purposes
-  const formattedDate = format(selectedDate, "yyyy-MM-dd");
+  const formattedDate = format(selectedDate, DATE_FORMATS.CALENDAR_DATE);
 
   // Calculate available time slots based on DB availability and Nylas calendar data for the selected date
   const availableSlots = calculateAvailableTimeSlots(
@@ -178,9 +164,9 @@ export async function TimeSlots({
   return (
     <div>
       <p className="text-base font-semibold">
-        {format(selectedDate, "EEE")}.{" "}
+        {format(selectedDate, DATE_FORMATS.WEEKDAY_SHORT)}.{" "}
         <span className="text-sm text-muted-foreground">
-          {format(selectedDate, "MMM. d")}
+          {format(selectedDate, DATE_FORMATS.MONTH_DAY)}
         </span>
       </p>
 
@@ -189,7 +175,7 @@ export async function TimeSlots({
           availableSlots.map((slot, index) => (
             <Link
               key={index}
-              href={`?date=${format(selectedDate, "yyyy-MM-dd")}&time=${slot}`}
+              href={`?date=${format(selectedDate, DATE_FORMATS.CALENDAR_DATE)}&time=${slot}`}
             >
               <Button variant="outline" className="w-full mb-2">
                 {slot}

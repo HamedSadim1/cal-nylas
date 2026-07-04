@@ -18,6 +18,7 @@ import {
   DEFAULT_AVAILABILITY,
   NYLAS_CONFERENCING_PROVIDER,
 } from "../constants";
+import { parseDateTime, toUnixSeconds } from "../times";
 
 /**
  * Handles the onboarding action by authenticating the user, validating the form data,
@@ -242,7 +243,7 @@ export async function createMeetingAction(formData: FormData) {
   const meetingLength = Number(formData.get("meetingLength"));
   const eventDate = getFormString(formData, "eventDate");
 
-  const startDateTime = new Date(`${eventDate}T${formTime}:00`);
+  const startDateTime = parseDateTime(eventDate, formTime);
 
   // Calculate the end time by adding the meeting length (in minutes) to the start time
   const endDateTime = new Date(startDateTime.getTime() + meetingLength * 60000);
@@ -253,8 +254,8 @@ export async function createMeetingAction(formData: FormData) {
       title: eventTypeData?.title,
       description: eventTypeData?.description,
       when: {
-        startTime: Math.floor(startDateTime.getTime() / 1000),
-        endTime: Math.floor(endDateTime.getTime() / 1000),
+        startTime: toUnixSeconds(startDateTime),
+        endTime: toUnixSeconds(endDateTime),
       },
       conferencing: {
         autocreate: {},
