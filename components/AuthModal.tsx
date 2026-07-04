@@ -11,6 +11,7 @@ import Logo from "@/public/logo.png";
 import Image from "next/image";
 
 import { signInGithub, signInGoogle } from "@/lib/actions/auth";
+import { APP_NAME } from "@/lib/constants";
 import { GitHubAuthButton, GoogleAuthButton } from "./SubmitButton";
 
 export function AuthModal() {
@@ -33,7 +34,7 @@ export function AuthModal() {
               <Image src={Logo} className="size-8" alt="Logo" />
             </div>
             <DialogTitle className="text-2xl font-bold tracking-tight mb-1.5">
-              Welcome to <span className="text-primary">CalHamed</span>
+              Welcome to <span className="text-primary">{APP_NAME}</span>
             </DialogTitle>
             <DialogDescription>
               Sign in to manage your schedule and events

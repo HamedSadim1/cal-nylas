@@ -105,6 +105,8 @@ model EventType {
   url               String
   description       String
   active            Boolean @default(true)
+  // MUST match PLATFORMS.GOOGLE_MEET in lib/constants.ts (kept in sync to avoid
+  // runtime/drizzle drift between the schema default and the app SSOT).
   videoCallSoftware String  @default("Google Meet")
 
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
