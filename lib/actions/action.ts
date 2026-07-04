@@ -88,6 +88,11 @@ export async function SettingsAction(prevState: unknown, formData: FormData) {
     return submission.reply();
   }
 
+  // `select: { id: true }` narrows the returned row to a single column --
+  // the previous update returned every User column (12 fields) but the
+  // result was only `console.log`'d before a redirect, so 11 columns were
+  // round-tripped and discarded. The id is the only field the `console.log`
+  // (and any future observer) reads; behavior unchanged for the redirect.
   const user = await prisma.user.update({
     where: {
       id: session.user.id,
@@ -96,6 +101,7 @@ export async function SettingsAction(prevState: unknown, formData: FormData) {
       userName: submission.value.fullName,
       image: submission.value.profileImage,
     },
+    select: { id: true },
   });
   console.log("🚀 ~ SettingsAction ~ user:", user);
 

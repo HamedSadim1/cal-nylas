@@ -23,8 +23,23 @@ import { CalendarCheck, Clock } from "lucide-react";
 type AvailabilityRow = Awaited<ReturnType<typeof getData>>[number];
 
 async function getData(userId: string) {
+  // SSOT-shaped projection + pinned ordering:
+  //   - `select` drops `createdAt` / `updatedAt` / `userId` from the wire
+  //     payload (the form doesn't render them; over-fetching is wasted bytes).
+  //   - `orderBy: { day: "asc" }` returns rows in *enum-declaration order*
+  //     (Mon → Sun) on Postgres, matching the natural week order on the
+  //     dashboard. Without `orderBy` the planner may return rows in
+  //     table-scan order, which is undefined across restarts.
   const data = await prisma.availability.findMany({
     where: { userId },
+    select: {
+      id: true,
+      day: true,
+      isActive: true,
+      fromTime: true,
+      tillTime: true,
+    },
+    orderBy: { day: "asc" },
   });
 
   if (!data) return notFound();

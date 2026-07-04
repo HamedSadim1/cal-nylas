@@ -43,6 +43,11 @@ async function getData(id: string) {
           duration: true,
         },
         orderBy: { createdAt: "desc" },
+        // Hard safety limit: card-grids that scale into the hundreds of
+        // rows flood Node's heap AND the user's viewport. Paginates
+        // sooner or later, but `take: 100` is the floor that keeps a
+        // single misbehaving account from taking down the dashboard.
+        take: 100,
       },
       userName: true,
     },
