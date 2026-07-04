@@ -8,7 +8,7 @@ import {
   EventTypeServerSchema,
   onboardingSchema,
 } from "../validations";
-import { getFormString } from "../utils";
+import { getFormString, parseAvailabilityForm } from "../utils";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { nylas } from "../nylas";
@@ -117,22 +117,10 @@ export async function SettingsAction(prevState: unknown, formData: FormData) {
 export async function updateAvailabilityAction(formData: FormData) {
   await requireUser();
 
-  // Process the form data to extract availability information and update the database records
-  const rawData = Object.fromEntries(formData.entries());
-  // Extract availability data from the form data
-  const availabilityData = Object.keys(rawData)
-    // Filter out keys that do not start with "id-"
-    .filter((key) => key.startsWith("id-"))
-    // Map the filtered keys to an array of availability objects with id, isActive, fromTime, and tillTime properties
-    .map((key) => {
-      const id = key.replace("id-", "");
-      return {
-        id,
-        isActive: rawData[`isActive-${id}`] === "on",
-        fromTime: String(rawData[`fromTime-${id}`]),
-        tillTime: String(rawData[`tillTime-${id}`]),
-      };
-    });
+  // Parse the form into availability rows. Rows whose Selects weren't rendered
+  // (item.isActive === false at SSR) are silently dropped so we never write
+  // junk values back to the database.
+  const availabilityData = parseAvailabilityForm(formData);
 
   try {
     // Update the availability records in the database using a transaction and revalidate the availability path

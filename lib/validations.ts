@@ -39,7 +39,7 @@ export function onboardingSchema(options?: {
               });
             }
           });
-        })
+        }),
       ),
     fullName: z.string().min(VALIDATION.NAME_MIN).max(VALIDATION.NAME_MAX),
   });
@@ -62,52 +62,93 @@ export const aboutSettingsSchema = z.object({
   profileImage: z.string(),
 });
 
-export const eventTypeSchema = z.object({
+// ─── EventType schemas (DRY base + .extend) ─────────────────────────────────
+// Shared by the client (eventTypeSchema) and the server-augmented validator
+// (EventTypeServerSchema). The 4 unchanging fields live here; `url` is the
+// only field that legitimately differs (server adds a DB-uniqueness check via
+// a `.pipe(z.string().superRefine(...))`, client cannot run async).
+//
+// Why `.extend` instead of inline `z.object({...})`: zod 4's `.extend` only
+// adds new fields, never shadows — so the base stays intent-clear and a
+// future zod-version bump doesn't accidentally start/quits supporting the
+// override branch. The base/derivative split also keeps the new `url` SSOT
+// (`eventTypeUrlSchema`) in a single place instead of duplicated across two
+// flat objects.
+const eventTypeBaseSchema = z.object({
   title: z.string().min(VALIDATION.TITLE_MIN).max(VALIDATION.TITLE_MAX),
-  duration: z.number().min(VALIDATION.DURATION_MIN).max(VALIDATION.DURATION_MAX),
-  url: z.string().min(VALIDATION.URL_MIN).max(VALIDATION.URL_MAX),
-  description: z.string().min(VALIDATION.DESCRIPTION_MIN).max(VALIDATION.DESCRIPTION_MAX),
+  duration: z
+    .number()
+    .min(VALIDATION.DURATION_MIN)
+    .max(VALIDATION.DURATION_MAX),
+  description: z
+    .string()
+    .min(VALIDATION.DESCRIPTION_MIN)
+    .max(VALIDATION.DESCRIPTION_MAX),
   videoCallSoftware: z.string(),
 });
 
+/**
+ * SSOT for the eventType slug (`url`) format used in booking-page URLs
+ * (e.g. `/<userName>/<url>`). Both the client schema and the server schema
+ * derive their url validators from this — keeps the bounds in one place so
+ * loosening/tightening `URL_MIN` / `URL_MAX` in `lib/constants.ts`
+ * automatically widens both branches.
+ */
+const eventTypeUrlSchema = z
+  .string()
+  .min(VALIDATION.URL_MIN)
+  .max(VALIDATION.URL_MAX);
+
+/**
+ * Client-facing schema (used in browser forms). Adds the SSOT url validator
+ * to the base. Cannot run async DB checks so no uniqueness lookup here.
+ */
+export const eventTypeSchema = eventTypeBaseSchema.extend({
+  url: eventTypeUrlSchema,
+});
+
+/**
+ * Server-facing schema (used by Conform with
+ * `parseWithZod(formData, { schema, async: true })`).
+ *
+ * Inherits the base + SSOT url format, then `.pipe()`s a `superRefine` that
+ * consults `options.isUrlUnique()` against the database. Conform's idiom:
+ * the async aspect isn't expressible synchronously, so when this validator
+ * runs on the client (without `options`) it surfaces `VALIDATION_UNDEFINED`
+ * — making Conform fall back to the server action for the real check. On
+ * the server the pipe's promise resolves and a duplicate url is rejected
+ * with "Url is already used".
+ */
 export function EventTypeServerSchema(options?: {
   isUrlUnique: () => Promise<boolean>;
 }) {
-  return z.object({
-    url: z
-      .string()
-      .min(VALIDATION.URL_MIN)
-      .max(VALIDATION.URL_MAX)
-      .pipe(
-        // Note: The callback cannot be async here
-        // As we run zod validation synchronously on the client
-        z.string().superRefine((_, ctx) => {
-          // This makes Conform to fallback to server validation
-          // by indicating that the validation is not defined
-          if (typeof options?.isUrlUnique !== "function") {
+  return eventTypeBaseSchema.extend({
+    url: eventTypeUrlSchema.pipe(
+      // Note: The callback cannot be async here
+      // As we run zod validation synchronously on the client
+      z.string().superRefine((_, ctx) => {
+        // This makes Conform to fallback to server validation
+        // by indicating that the validation is not defined
+        if (typeof options?.isUrlUnique !== "function") {
+          ctx.addIssue({
+            code: "custom",
+            message: conformZodMessage.VALIDATION_UNDEFINED,
+            fatal: true,
+          });
+          return;
+        }
+
+        // If it reaches here, then it must be validating on the server
+        // Return the result as a promise so Zod knows it's async instead
+        return options.isUrlUnique().then((isUnique) => {
+          if (!isUnique) {
             ctx.addIssue({
               code: "custom",
-              message: conformZodMessage.VALIDATION_UNDEFINED,
-              fatal: true,
+              message: "Url is already used",
             });
-            return;
           }
-
-          // If it reaches here, then it must be validating on the server
-          // Return the result as a promise so Zod knows it's async instead
-          return options.isUrlUnique().then((isUnique) => {
-            if (!isUnique) {
-              ctx.addIssue({
-                code: "custom",
-                message: "Url is already used",
-              });
-            }
-          });
-        })
-      ),
-    title: z.string().min(VALIDATION.TITLE_MIN).max(VALIDATION.TITLE_MAX),
-    duration: z.number().min(VALIDATION.DURATION_MIN).max(VALIDATION.DURATION_MAX),
-    description: z.string().min(VALIDATION.DESCRIPTION_MIN).max(VALIDATION.DESCRIPTION_MAX),
-    videoCallSoftware: z.string(),
+        });
+      }),
+    ),
   });
 }
