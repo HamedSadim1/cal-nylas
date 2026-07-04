@@ -36,17 +36,24 @@ const nextConfig: NextConfig = {
     return config;
   },
   // Forward-compat analog for `next build --turbopack` (and any future
-  // Turbopack work). Turbopack aliases are prefix-matched (no `$` regex),
-  // so each key handles nested subpaths automatically — `zod` covers both
-  // the bare specifier and any future `zod/*` subpath. The shim at
-  // `lib/zod-shim.mjs` is fully self-contained (no `export *`) so the
-  // bundler's wildcard expansion can't degrade it.
+  // Turbopack work). Turbopack aliases are prefix-segment matched — a
+  // bare `zod` key would otherwise be a prefix for ANY `zod/*` subpath.
+  // Listing the v4 family of subpaths EXPLICITLY FIRST with
+  // self-referential values makes resolution for those subpaths
+  // unambiguous regardless of how the bundler orders specificity.
+  // The bare `zod:` and `zod/v3:` keys then safely redirect to the
+  // shim.
   turbopack: {
     resolveAlias: {
       "@conform-to/zod": "@conform-to/zod/v4",
       "@conform-to/zod/v3": "@conform-to/zod/v4",
-      zod: ZOD_V3_SHIM,
+      "@conform-to/zod/v3/future": "@conform-to/zod/v4/future",
+      "zod/v4": "zod/v4",
+      "zod/v4-mini": "zod/v4-mini",
+      "zod/v4/core": "zod/v4/core",
+      "zod/v4/locales": "zod/v4/locales",
       "zod/v3": ZOD_V3_SHIM,
+      zod: ZOD_V3_SHIM,
     },
   },
   images: {
